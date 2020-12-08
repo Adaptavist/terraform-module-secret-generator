@@ -1,0 +1,62 @@
+definitions:
+  tests: &test
+    name: Tests
+    image: adaptavist/all-tools:openjdk11-latest-0.13.5
+    script:
+      - (apk add --update go)
+      - (cd test && AWS_ACCESS_KEY_ID="${TF_TEST_AWS_ACCESS_KEY_ID}" AWS_SECRET_ACCESS_KEY="${TF_TEST_AWS_SECRET_ACCESS_KEY}" go test)
+
+  check: &check
+    name: Check HCL
+    image: adaptavist/all-tools:openjdk11-latest-0.13.5
+    script:
+      - (echo ${PIPELINE_GIT_PRIVATE_KEY} | base64 -d >> ~/.ssh/id_rsa) && chmod 0600 ~/.ssh/id_rsa
+      - terraform fmt -check -recursive -diff
+
+  compliance: &compliance
+    name: TF Compliance
+    image: adaptavist/all-tools:openjdk11-latest-0.13.5
+    script:
+      - >
+       (cd test/fixture 
+       && 
+       AWS_ACCESS_KEY_ID="${TF_TEST_AWS_ACCESS_KEY_ID}" 
+       AWS_SECRET_ACCESS_KEY="${TF_TEST_AWS_SECRET_ACCESS_KEY}"       
+       terraform init -backend-config="key=modules/module-secret-generator/tests/fixures/default/compliance-test.tfstate")
+      - >
+       (cd test/fixture 
+       && 
+       AWS_ACCESS_KEY_ID="${TF_TEST_AWS_ACCESS_KEY_ID}" 
+       AWS_SECRET_ACCESS_KEY="${TF_TEST_AWS_SECRET_ACCESS_KEY}"      
+       terraform plan -out=plan.out
+       -var aws_region=us-west-2
+       -var "positive_test_ssm_parameter_name=/some/fake/path1"
+       -var "positive_test_existing_ssm_parameter_name=/some/fake/path2"
+       -var "positive_test_existing_replace_ssm_parameter_name=/some/fake/path3")
+      - >
+        (cd test/fixture 
+        && 
+        AWS_ACCESS_KEY_ID="${TF_TEST_AWS_ACCESS_KEY_ID}" 
+        AWS_SECRET_ACCESS_KEY="${TF_TEST_AWS_SECRET_ACCESS_KEY}" 
+        terraform-compliance -f git:https://github.com/Adaptavist/terraform-compliance.git -p plan.out)
+
+  release: &release
+    name: Release
+    image: node:13
+    caches:
+      - node
+    script:
+      - npm install --save-dev
+      - npx semantic-release -r ${BITBUCKET_GIT_HTTP_ORIGIN}
+
+pipelines:
+  default:
+    - step: *check
+    - step: *compliance
+    - step: *test
+  branches:
+    master:
+      - step: *check
+      - step: *compliance
+      - step: *test
+      - step: *release
