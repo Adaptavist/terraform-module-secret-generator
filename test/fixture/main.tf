@@ -29,7 +29,7 @@ resource "random_string" "random" {
 }
 
 module lambda {
-  source      = "../../infra"
+  source      = "../../"
   namespace   = "test"
   aws_region  = var.aws_region
   lambda_name = "ssm-secret-generator-${random_string.random.result}"
