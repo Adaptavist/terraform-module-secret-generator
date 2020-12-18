@@ -23,3 +23,5 @@ See the below diagram which outlines the creation of a secret.
 | stage         | The stage of the lambda                                                                                                                                            |
 | secret_length | The length of the secret that should be generated.                                                                                                                 |
 | tags          | Tags applied to the distribution, these should follow what is defined [here](https://github.com/Adaptavist/terraform-compliance/blob/master/features/tags.feature) |
+
+
