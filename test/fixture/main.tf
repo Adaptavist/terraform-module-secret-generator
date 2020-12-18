@@ -28,20 +28,19 @@ resource "random_string" "random" {
   special = false
 }
 
-module lambda {
+module "lambda" {
   source      = "../../"
   namespace   = "test"
-  aws_region  = var.aws_region
   lambda_name = "ssm-secret-generator-${random_string.random.result}"
   stage       = local.stage
   tags        = local.tags
 }
 
-module positive_test_ssm_parameter {
+module "positive_test_ssm_parameter" {
   source  = "Adaptavist/aws-secret/module"
   version = "1.0.1"
 
-  secret_lambda_function_name = "${module.lambda.lambda_name}"
+  secret_lambda_function_name = module.lambda.lambda_name
   secret_ssm_path             = var.positive_test_ssm_parameter_name
   tags                        = local.tags
   stage                       = local.stage
@@ -49,11 +48,11 @@ module positive_test_ssm_parameter {
   depends_on = [module.lambda]
 }
 
-module positive_test_existing_ssm_parameter {
+module "positive_test_existing_ssm_parameter" {
   source  = "Adaptavist/aws-secret/module"
   version = "1.0.1"
 
-  secret_lambda_function_name = "${module.lambda.lambda_name}"
+  secret_lambda_function_name = module.lambda.lambda_name
   secret_ssm_path             = var.positive_test_existing_ssm_parameter_name
   tags                        = local.tags
   stage                       = local.stage
@@ -63,11 +62,11 @@ module positive_test_existing_ssm_parameter {
   depends_on = [module.lambda]
 }
 
-module positive_test_existing_replace_ssm_parameter {
+module "positive_test_existing_replace_ssm_parameter" {
   source  = "Adaptavist/aws-secret/module"
   version = "1.0.1"
 
-  secret_lambda_function_name = "${module.lambda.lambda_name}"
+  secret_lambda_function_name = module.lambda.lambda_name
   secret_ssm_path             = var.positive_test_existing_replace_ssm_parameter_name
   tags                        = local.tags
   stage                       = local.stage

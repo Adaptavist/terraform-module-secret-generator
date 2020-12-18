@@ -13,13 +13,14 @@
   },
   "scripts": {
     "check": "terraform fmt -check -recursive -diff",
-    "format": "terraform fmt -recursive -diff"
+    "format": "terraform fmt -recursive -diff",
+    "docs": "terraform-docs markdown ."
   },
   "husky": {
     "skipCI": true,
     "hooks": {
       "pre-commit": "terraform fmt -check -recursive -diff",
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"      
     }
   },
   "release": {

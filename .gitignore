@@ -1,6 +1,7 @@
 *.tfstate
 *.backup
-.terraform
+.terraform*
+*.zip
 .idea
 node_modules
 dist/
