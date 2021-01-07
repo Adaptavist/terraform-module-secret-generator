@@ -20,7 +20,7 @@ module "aws-lambda" {
   source  = "Adaptavist/aws-lambda/module"
   version = "1.5.0"
 
-  function_name   = "${var.lambda_name}-${var.stage}"
+  function_name   = var.lambda_name
   description     = "A lambda which generates a random string and sets it into a supplied SSM path"
   lambda_code_dir = "node_modules/password-secret-setter/dist"
   handler         = "app.handler"
