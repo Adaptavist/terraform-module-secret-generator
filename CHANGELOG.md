@@ -1,3 +1,10 @@
+## [1.0.2](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.0.1...v1.0.2) (2021-01-07)
+
+
+### Bug Fixes
+
+* shorten lambda name ([7ba7686](http://bitbucket.org/adaptavistlabs/module-secret-generator/commits/7ba768684a4fde9622e6ee9991b7a783d7f9f607))
+
 ## [1.0.1](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.0.0...v1.0.1) (2021-01-04)
 
 
