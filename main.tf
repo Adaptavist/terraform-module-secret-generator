@@ -9,7 +9,7 @@ locals {
 
 resource "null_resource" "lambda_dist" {
   provisioner "local-exec" {
-    command = "npm i password-secret-setter && cd node_modules/password-secret-setter && npm install && npm run-script build"
+    command = "cd ${path.module}/typescript/ && npm install && npm run-script build"
   }
   triggers = {
     always_run = timestamp()

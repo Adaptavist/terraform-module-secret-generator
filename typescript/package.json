@@ -1,6 +1,6 @@
 {
   "name": "password-secret-setter",
-  "version": "1.0.0", 
+  "version": "1.0.0",
   "description": "Sets a randomly generated password into a SSM parameter",
   "main": "app.js",
   "dependencies": {
