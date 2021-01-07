@@ -1,3 +1,10 @@
+# [1.1.0](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.0.2...v1.1.0) (2021-01-07)
+
+
+### Features
+
+* **TF:** moving back to using local build rather than pulling from npm ([802ab75](http://bitbucket.org/adaptavistlabs/module-secret-generator/commits/802ab755ab9705ef427213de64bcbf3e4cd65d0f))
+
 ## [1.0.2](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.0.1...v1.0.2) (2021-01-07)
 
 
