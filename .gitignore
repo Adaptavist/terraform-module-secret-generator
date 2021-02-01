@@ -3,5 +3,4 @@
 .terraform*
 *.zip
 .idea
-dist/
 .DS_Store
