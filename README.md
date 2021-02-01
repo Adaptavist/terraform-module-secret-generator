@@ -27,3 +27,4 @@ See the below diagram which outlines the creation of a secret.
 | Name | Description |
 |------|-------------|
 | lambda\_name | Name given to the lambda |
+
