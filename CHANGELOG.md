@@ -1,3 +1,10 @@
+## [1.1.1](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.1.0...v1.1.1) (2021-02-01)
+
+
+### Bug Fixes
+
+* baked in JS into module ([e2b5c53](http://bitbucket.org/adaptavistlabs/module-secret-generator/commits/e2b5c531f48bcfd7d61f6455a24b693171735868))
+
 # [1.1.0](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.0.2...v1.1.0) (2021-01-07)
 
 
