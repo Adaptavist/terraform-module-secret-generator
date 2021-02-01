@@ -7,15 +7,6 @@ locals {
   finalTags = merge(var.tags, local.stageTag)
 }
 
-resource "null_resource" "lambda_dist" {
-  provisioner "local-exec" {
-    command = "cd ${path.module}/typescript/ && npm install && npm run-script build"
-  }
-  triggers = {
-    always_run = timestamp()
-  }
-}
-
 module "aws-lambda" {
   source  = "Adaptavist/aws-lambda/module"
   version = "1.5.0"
@@ -30,8 +21,6 @@ module "aws-lambda" {
   namespace = var.namespace
   stage     = var.stage
   tags      = local.finalTags
-
-  depends_on = [null_resource.lambda_dist]
 }
 
 resource "aws_iam_role_policy" "lambda_exec_role_policy" {

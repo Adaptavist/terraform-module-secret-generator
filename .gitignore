@@ -3,6 +3,4 @@
 .terraform*
 *.zip
 .idea
-node_modules
-dist/
 .DS_Store

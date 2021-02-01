@@ -37,7 +37,7 @@ export const handler = function (
       .getRandomPassword({
         IncludeSpace: includeSpaces,
         PasswordLength: secretLength,
-        RequireEachIncludedType: true,
+        RequireEachIncludedType: true,        
       })
       .send((err, data) => {
         if (err) {
