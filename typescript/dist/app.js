@@ -42,32 +42,33 @@ exports.handler = function (event, context, callback) {
     function setSecretValue(path, errorCallBack, successCallBack) {
         new aws_sdk_1.SecretsManager()
             .getRandomPassword({
-            IncludeSpace: includeSpaces,
-            PasswordLength: secretLength,
-            RequireEachIncludedType: true,
-        })
+                IncludeSpace: includeSpaces,
+                PasswordLength: secretLength,
+                RequireEachIncludedType: true,
+                ExcludePunctuation: true
+            })
             .send((err, data) => {
-            if (err) {
-                errorCallBack(`Failed to generate password, cause : ${err}`);
-            }
-            else {
-                var params = {
-                    Name: path,
-                    Value: data.RandomPassword,
-                    Overwrite: true,
-                    Type: "SecureString",
-                };
-                ssm.putParameter(params, function (err, data) {
-                    if (err) {
-                        errorCallBack(`Failed to save password in SSM, cause : ${err}`);
-                    }
-                    else {
-                        console.log(`Written secret to ${event.ResourceProperties.path}`);
-                        successCallBack();
-                    }
-                });
-            }
-        });
+                if (err) {
+                    errorCallBack(`Failed to generate password, cause : ${err}`);
+                }
+                else {
+                    var params = {
+                        Name: path,
+                        Value: data.RandomPassword,
+                        Overwrite: true,
+                        Type: "SecureString",
+                    };
+                    ssm.putParameter(params, function (err, data) {
+                        if (err) {
+                            errorCallBack(`Failed to save password in SSM, cause : ${err}`);
+                        }
+                        else {
+                            console.log(`Written secret to ${event.ResourceProperties.path}`);
+                            successCallBack();
+                        }
+                    });
+                }
+            });
     }
     function applyIfSecretValueSet(path, applyToSecret, applyToMissingSecret, errorCallBack) {
         console.log("checking if secret already exists");
