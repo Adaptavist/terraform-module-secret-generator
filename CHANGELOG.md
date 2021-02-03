@@ -1,3 +1,10 @@
+## [1.1.2](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.1.1...v1.1.2) (2021-02-03)
+
+
+### Bug Fixes
+
+* stopping secret from containing punctuation chars ([ef6b10e](http://bitbucket.org/adaptavistlabs/module-secret-generator/commits/ef6b10e774c4cc5107273f8682a6f2c9537a835b))
+
 ## [1.1.1](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.1.0...v1.1.1) (2021-02-01)
 
 
