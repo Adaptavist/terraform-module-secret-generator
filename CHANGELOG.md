@@ -1,3 +1,10 @@
+## [1.1.3](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.1.2...v1.1.3) (2021-03-01)
+
+
+### Bug Fixes
+
+* using newer version of lambda module ([03a74d5](http://bitbucket.org/adaptavistlabs/module-secret-generator/commits/03a74d5295057c8777d74941031dc364002846b2))
+
 ## [1.1.2](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.1.1...v1.1.2) (2021-02-03)
 
 
