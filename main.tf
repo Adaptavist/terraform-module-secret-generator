@@ -9,7 +9,7 @@ locals {
 
 module "aws-lambda" {
   source  = "Adaptavist/aws-lambda/module"
-  version = "1.5.0"
+  version = "1.8.1"
 
   function_name   = var.lambda_name
   description     = "A lambda which generates a random string and sets it into a supplied SSM path"
