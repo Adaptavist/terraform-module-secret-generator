@@ -15,12 +15,23 @@ module "aws-lambda" {
   description     = "A lambda which generates a random string and sets it into a supplied SSM path"
   lambda_code_dir = "${path.module}/typescript/dist"
   handler         = "app.handler"
-  runtime         = "nodejs10.x"
+  runtime         = "nodejs12.x"
   timeout         = "300"
 
   namespace = var.namespace
   stage     = var.stage
   tags      = local.finalTags
+
+  depends_on = [null_resource.lambda_dist]
+}
+
+resource "null_resource" "lambda_dist" {
+  provisioner "local-exec" {
+    command = "cd ${path.module}/typescript/ && npm install && npm run build"
+  }
+  triggers = {
+    always_run = timestamp()
+  }
 }
 
 resource "aws_iam_role_policy" "lambda_exec_role_policy" {
