@@ -1,6 +1,7 @@
-import AWS, { SecretsManager } from "aws-sdk";
+import { SecretsManager } from "aws-sdk";
 import { Context, Callback } from "aws-lambda";
 import * as cfnResponse from "cfn-response";
+import AWS = require("aws-sdk");
 
 var ssm = new AWS.SSM();
 
