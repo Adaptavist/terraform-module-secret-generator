@@ -3,6 +3,15 @@
 
 ### Bug Fixes
 
+* added license ([411da33](http://bitbucket.org/adaptavistlabs/module-secret-generator/commits/411da33c1dd940190880f601253d7c4d17dc55b0))
+* changed to use esbuild and re-added null resource ([a7394ea](http://bitbucket.org/adaptavistlabs/module-secret-generator/commits/a7394ea6d355ff3b3adc929cad33b027a1bc78e1))
+* using file hash to control null resource trigger ([e954770](http://bitbucket.org/adaptavistlabs/module-secret-generator/commits/e9547705b309ea1076a40a45bd91366c7836a971))
+
+## [1.1.4](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.1.3...v1.1.4) (2021-03-02)
+
+
+### Bug Fixes
+
 * changed to use esbuild and re-added null resource ([a7394ea](http://bitbucket.org/adaptavistlabs/module-secret-generator/commits/a7394ea6d355ff3b3adc929cad33b027a1bc78e1))
 * using file hash to control null resource trigger ([e954770](http://bitbucket.org/adaptavistlabs/module-secret-generator/commits/e9547705b309ea1076a40a45bd91366c7836a971))
 
