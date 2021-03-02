@@ -5,6 +5,15 @@ locals {
   }
 
   finalTags = merge(var.tags, local.stageTag)
+
+  // generate hash for typescript files
+  source_directory       = "${path.module}/typescript"
+  source_directory_files = fileset(local.source_directory, "**")
+  source_file_hashes = {
+    for path in local.source_directory_files :
+    path => filebase64sha512("${local.source_directory}/${path}")
+  }
+  overall_hash = base64sha512(jsonencode(local.source_file_hashes))
 }
 
 module "aws-lambda" {
@@ -30,7 +39,7 @@ resource "null_resource" "lambda_dist" {
     command = "cd ${path.module}/typescript/ && npm install && npm run build"
   }
   triggers = {
-    always_run = timestamp()
+    always_run = local.overall_hash
   }
 }
 
