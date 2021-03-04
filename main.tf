@@ -4,7 +4,7 @@ locals {
     "Avst:Stage:Name" = var.stage
   }
 
-  finalTags = merge(var.tags, local.stageTag)  
+  finalTags = merge(var.tags, local.stageTag)
 }
 
 module "aws-lambda" {
@@ -21,17 +21,6 @@ module "aws-lambda" {
   namespace = var.namespace
   stage     = var.stage
   tags      = local.finalTags
-
-  depends_on = [null_resource.lambda_dist]
-}
-
-resource "null_resource" "lambda_dist" {
-  provisioner "local-exec" {
-    command = "cd ${path.module}/typescript/ && npm install && npm run build"
-  }
-  triggers = {
-    always_run = timestamp()
-  }
 }
 
 resource "aws_iam_role_policy" "lambda_exec_role_policy" {
@@ -43,7 +32,7 @@ resource "aws_iam_role_policy" "lambda_exec_role_policy" {
     "Version": "2012-10-17",
     "Statement": [
       {
-        "Action": [          
+        "Action": [
           "ssm:*",
           "secretsmanager:GetRandomPassword",
           "iam:Generate*",
