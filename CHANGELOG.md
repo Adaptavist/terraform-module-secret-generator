@@ -1,3 +1,15 @@
+# [1.3.0](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.2.0...v1.3.0) (2021-03-04)
+
+
+### Bug Fixes
+
+* building dist before test ([bfc717c](http://bitbucket.org/adaptavistlabs/module-secret-generator/commits/bfc717cb63eede5b03073ea9ea4dc3de8dd254db))
+
+
+### Features
+
+* baking in JS as part of pipeline ([920b5ed](http://bitbucket.org/adaptavistlabs/module-secret-generator/commits/920b5edd0def030c82bd13ee854d3affa0a221fa))
+
 # [1.2.0](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.1.3...v1.2.0) (2021-03-02)
 
 
