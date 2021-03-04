@@ -5,15 +5,6 @@ locals {
   }
 
   finalTags = merge(var.tags, local.stageTag)
-
-  // generate hash for typescript files
-  source_directory       = "${path.module}/typescript"
-  source_directory_files = fileset(local.source_directory, "**")
-  source_file_hashes = {
-    for path in local.source_directory_files :
-    path => filebase64sha512("${local.source_directory}/${path}")
-  }
-  overall_hash = base64sha512(jsonencode(local.source_file_hashes))
 }
 
 module "aws-lambda" {
@@ -30,17 +21,6 @@ module "aws-lambda" {
   namespace = var.namespace
   stage     = var.stage
   tags      = local.finalTags
-
-  depends_on = [null_resource.lambda_dist]
-}
-
-resource "null_resource" "lambda_dist" {
-  provisioner "local-exec" {
-    command = "cd ${path.module}/typescript/ && npm install && npm run build"
-  }
-  triggers = {
-    always_run = local.overall_hash
-  }
 }
 
 resource "aws_iam_role_policy" "lambda_exec_role_policy" {
@@ -52,7 +32,7 @@ resource "aws_iam_role_policy" "lambda_exec_role_policy" {
     "Version": "2012-10-17",
     "Statement": [
       {
-        "Action": [          
+        "Action": [
           "ssm:*",
           "secretsmanager:GetRandomPassword",
           "iam:Generate*",

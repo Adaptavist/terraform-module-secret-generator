@@ -18,27 +18,38 @@ definitions:
     image: adaptavist/all-tools:openjdk11-latest-0.13.5
     script:
       - >
-       (cd test/fixture 
-       && 
-       AWS_ACCESS_KEY_ID="${TF_TEST_AWS_ACCESS_KEY_ID}" 
-       AWS_SECRET_ACCESS_KEY="${TF_TEST_AWS_SECRET_ACCESS_KEY}"       
+       (cd test/fixture
+       &&
+       AWS_ACCESS_KEY_ID="${TF_TEST_AWS_ACCESS_KEY_ID}"
+       AWS_SECRET_ACCESS_KEY="${TF_TEST_AWS_SECRET_ACCESS_KEY}"
        terraform init -backend-config="key=modules/module-secret-generator/tests/fixures/default/compliance-test.tfstate")
       - >
-       (cd test/fixture 
-       && 
-       AWS_ACCESS_KEY_ID="${TF_TEST_AWS_ACCESS_KEY_ID}" 
-       AWS_SECRET_ACCESS_KEY="${TF_TEST_AWS_SECRET_ACCESS_KEY}"      
+       (cd test/fixture
+       &&
+       AWS_ACCESS_KEY_ID="${TF_TEST_AWS_ACCESS_KEY_ID}"
+       AWS_SECRET_ACCESS_KEY="${TF_TEST_AWS_SECRET_ACCESS_KEY}"
        terraform plan -out=plan.out
        -var aws_region=us-west-2
        -var "positive_test_ssm_parameter_name=/some/fake/path1"
        -var "positive_test_existing_ssm_parameter_name=/some/fake/path2"
        -var "positive_test_existing_replace_ssm_parameter_name=/some/fake/path3")
       - >
-        (cd test/fixture 
-        && 
-        AWS_ACCESS_KEY_ID="${TF_TEST_AWS_ACCESS_KEY_ID}" 
-        AWS_SECRET_ACCESS_KEY="${TF_TEST_AWS_SECRET_ACCESS_KEY}" 
+        (cd test/fixture
+        &&
+        AWS_ACCESS_KEY_ID="${TF_TEST_AWS_ACCESS_KEY_ID}"
+        AWS_SECRET_ACCESS_KEY="${TF_TEST_AWS_SECRET_ACCESS_KEY}"
         terraform-compliance -f git:https://github.com/Adaptavist/terraform-compliance.git -p plan.out)
+
+  transpile: &transpile
+    name: Transpile TS
+    image: node:13
+    caches:
+      - node
+    script:
+      - (cd typescript && npm install && npm run-script build)
+      - git add typescript/dist/*
+      - git commit --allow-empty -m '[skip ci] transpiled TS to JS'
+      - git push
 
   release: &release
     name: Release
@@ -54,6 +65,8 @@ pipelines:
     - step: *check
     - step: *compliance
     - step: *test
+    - step: *transpile
+
   branches:
     master:
       - step: *check
