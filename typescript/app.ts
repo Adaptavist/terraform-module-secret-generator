@@ -41,7 +41,10 @@ export const handler = async (
         }
 
         if (event.RequestType === 'Delete') {
-            await describeParameter(path, ssmClients, true);
+            const params = await describeParameter(path, ssmClients);
+            if (!params.length) {
+                return handleSuccess(event, context);
+            }
             result = await deleteSecret(path, ssmClients);
         }
 
@@ -118,7 +121,7 @@ const deleteSecret = async (
     }
 };
 
-const describeParameter = async (path: string, ssmClients: SSM[], ignoreErrors: boolean = false) : Promise<DescribeParametersResult[]> => {
+const describeParameter = async (path: string, ssmClients: SSM[]) : Promise<DescribeParametersResult[]> => {
     const promises: Promise<DescribeParametersResult>[] = [];
     ssmClients.forEach(client => {
         const params: AWS.SSM.DescribeParametersRequest = {
@@ -151,30 +154,3 @@ const handleError = async (event: any, context: Context, cause: any) => {
 const handleSuccess = async (event: any, context: Context, data?: any) => {
     return send(event, context, SUCCESS, data);
 };
-
-// , function (err, data) {
-//         if (err) {
-//             errorCallBack(
-//                 `Failed to to remove secret located at ${path}, cause : ${err}`
-//             );
-//         } else {
-//             console.log(`Removed secret located in ${path}`);
-//             successCallBack();
-//         }
-//     });
-// })
-//
-
-// function (err, data) {
-//     if (err) {
-//         errorCallBack(`Failed to describe secret, cause : ${err}`);
-//     } else {
-//         if (data.Parameters!.length == 0) {
-//             console.log('secret not found, running supplied callback');
-//             applyToMissingSecret(path);
-//         } else {
-//             console.log('secret found, running supplied callback');
-//             applyToSecret(path);
-//         }
-//     }
-// }
