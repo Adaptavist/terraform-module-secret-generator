@@ -14,7 +14,7 @@ __export(exports, {
 // cfnResponse/index.ts
 var SUCCESS = "SUCCESS";
 var FAILED = "FAILED";
-var send = async (event, context, responseStatus, responseData, physicalResourceId, noEcho) => {
+var send = async (event, context, responseStatus, responseData, error, physicalResourceId, noEcho) => {
   return new Promise((resolve, reject) => {
     const responseBody = JSON.stringify({
       Status: responseStatus,
@@ -45,9 +45,9 @@ var send = async (event, context, responseStatus, responseData, physicalResource
       console.log("Status message: " + response.statusMessage);
       resolve();
     });
-    request.on("error", function(error) {
-      console.log("send(..) failed executing https.request(..): " + error);
-      reject(error);
+    request.on("error", function(error2) {
+      console.log("send(..) failed executing https.request(..): " + error2);
+      reject(error2);
     });
     request.write(responseBody);
     request.end();
@@ -169,8 +169,7 @@ var describeParameter = async (path, ssmClients) => {
   }
 };
 var handleError = async (event, context, cause) => {
-  const error = new Error(cause);
-  return send(event, context, FAILED, error);
+  return send(event, context, FAILED, cause);
 };
 var handleSuccess = async (event, context) => {
   return send(event, context, SUCCESS, {});

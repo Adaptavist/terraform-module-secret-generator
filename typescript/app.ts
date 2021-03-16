@@ -29,23 +29,23 @@ export const handler = async (
 
     try {
         const secret = await getRandomSecret(includeSpaces, secretLength);
-
+        let result;
         if (event.RequestType === 'Create') {
             if (respectInitialValue === 'true') {
                 await describeParameter(path, ssmClients);
                 return handleSuccess(event, context);
             }
-            await setSecretValue(path, ssmClients, secret);
+            result = await setSecretValue(path, ssmClients, secret);
         }
 
         if (event.RequestType === 'Delete') {
             await describeParameter(path, ssmClients);
-            await deleteSecret(path, ssmClients);
+            result = await deleteSecret(path, ssmClients);
         }
 
-        return handleSuccess(event, context);
-    } catch (e) {
-        return handleError(event, context, e);
+        return handleSuccess(event, context, result);
+    } catch (error) {
+        return handleError(event, context, error);
     }
 };
 
@@ -146,12 +146,11 @@ const describeParameter = async (path: string, ssmClients: SSM[]): Promise<Descr
 };
 
 const handleError = async (event: any, context: Context, cause: any) => {
-    // const error = new Error(cause);
-    return send(event, context, FAILED, cause);
+    return send(event, context, FAILED, { cause });
 };
 
-const handleSuccess = async (event: any, context: Context) => {
-    return send(event, context, SUCCESS, {});
+const handleSuccess = async (event: any, context: Context, data?: any) => {
+    return send(event, context, SUCCESS, data);
 };
 
 // , function (err, data) {

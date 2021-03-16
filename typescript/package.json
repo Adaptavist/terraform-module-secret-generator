@@ -4,7 +4,6 @@
   "description": "Sets a randomly generated password into a SSM parameter",
   "main": "app.js",
   "dependencies": {
-    "cfn-response": "^1.0.1",
     "esbuild": "^0.8.54"
   },
   "devDependencies": {
