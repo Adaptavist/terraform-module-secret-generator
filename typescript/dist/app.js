@@ -18,7 +18,7 @@ var send = async (event, context, responseStatus, responseData, error, physicalR
   return new Promise((resolve, reject) => {
     const responseBody = JSON.stringify({
       Status: responseStatus,
-      Reason: "See the details in CloudWatch Log Stream: " + context.logStreamName,
+      Reason: `See the details in CloudWatch Log Group ${context.logGroupName} Log Stream ${context.logStreamName}`,
       PhysicalResourceId: physicalResourceId || context.logStreamName,
       StackId: event.StackId,
       RequestId: event.RequestId,
@@ -59,7 +59,7 @@ var AWS = require("aws-sdk");
 var handler = async (event, context) => {
   console.log(`Received : ${event.RequestType}`);
   if (!event || !event.ResourceProperties.path) {
-    return handleError(event, context, "No path was specified for the SSM parameter the secret will be stored in. Cannot continue.");
+    return handleError(event, context, {message: "No path was specified for the SSM parameter the secret will be stored in. Cannot continue."});
   }
   const path = event.ResourceProperties.path;
   const respectInitialValue = event.ResourceProperties.respectInitialValue || "false";
@@ -75,20 +75,27 @@ var handler = async (event, context) => {
   console.log(`secretLength : ${secretLength}`);
   try {
     const secret = await getRandomSecret(includeSpaces, secretLength);
+    let result;
     if (event.RequestType === "Create") {
       if (respectInitialValue === "true") {
-        await describeParameter(path, ssmClients);
-        return handleSuccess(event, context);
+        const params = await describeParameter(path, ssmClients);
+        if (params.length) {
+          return handleSuccess(event, context, {params});
+        }
       }
-      await setSecretValue(path, ssmClients, secret);
+      result = await setSecretValue(path, ssmClients, secret);
     }
     if (event.RequestType === "Delete") {
-      await describeParameter(path, ssmClients);
-      await deleteSecret(path, ssmClients);
+      const params = await describeParameter(path, ssmClients);
+      if (!params.length) {
+        return handleSuccess(event, context, {params});
+      }
+      result = await deleteSecret(path, ssmClients);
     }
-    return handleSuccess(event, context);
-  } catch (e) {
-    return handleError(event, context, e);
+    return handleSuccess(event, context, {result});
+  } catch (error) {
+    console.log(error);
+    return handleError(event, context, {error});
   }
 };
 var getRandomSecret = async (includeSpaces, secretLength) => {
@@ -158,10 +165,7 @@ var describeParameter = async (path, ssmClients) => {
   });
   try {
     return Promise.all(promises).then((params) => {
-      if (params.filter((param) => !param.Parameters.length).length !== 0) {
-        throw new Error(`Secret not found ${path}`);
-      }
-      return params;
+      return params.filter((param) => param.Parameters.length);
     });
   } catch (error) {
     console.log(error);
@@ -171,6 +175,6 @@ var describeParameter = async (path, ssmClients) => {
 var handleError = async (event, context, cause) => {
   return send(event, context, FAILED, cause);
 };
-var handleSuccess = async (event, context) => {
-  return send(event, context, SUCCESS, {});
+var handleSuccess = async (event, context, data) => {
+  return send(event, context, SUCCESS, data);
 };
