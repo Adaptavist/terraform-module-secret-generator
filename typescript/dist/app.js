@@ -1,54 +1,36 @@
-var __create = Object.create;
 var __defProp = Object.defineProperty;
-var __getProtoOf = Object.getPrototypeOf;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __markAsModule = (target) => __defProp(target, "__esModule", {value: true});
-var __commonJS = (callback, module2) => () => {
-  if (!module2) {
-    module2 = {exports: {}};
-    callback(module2.exports, module2);
-  }
-  return module2.exports;
-};
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {get: all[name], enumerable: true});
 };
-var __exportStar = (target, module2, desc) => {
-  if (module2 && typeof module2 === "object" || typeof module2 === "function") {
-    for (let key of __getOwnPropNames(module2))
-      if (!__hasOwnProp.call(target, key) && key !== "default")
-        __defProp(target, key, {get: () => module2[key], enumerable: !(desc = __getOwnPropDesc(module2, key)) || desc.enumerable});
-  }
-  return target;
-};
-var __toModule = (module2) => {
-  if (module2 && module2.__esModule)
-    return module2;
-  return __exportStar(__markAsModule(__defProp(module2 != null ? __create(__getProtoOf(module2)) : {}, "default", {value: module2, enumerable: true})), module2);
-};
 
-// node_modules/cfn-response/index.js
-var require_cfn_response = __commonJS((exports2) => {
-  exports2.SUCCESS = "SUCCESS";
-  exports2.FAILED = "FAILED";
-  exports2.send = function(event, context, responseStatus, responseData, physicalResourceId) {
-    var responseBody = JSON.stringify({
+// app.ts
+__markAsModule(exports);
+__export(exports, {
+  handler: () => handler
+});
+
+// cfnResponse/index.ts
+var SUCCESS = "SUCCESS";
+var FAILED = "FAILED";
+var send = async (event, context, responseStatus, responseData, physicalResourceId, noEcho) => {
+  return new Promise((resolve, reject) => {
+    const responseBody = JSON.stringify({
       Status: responseStatus,
       Reason: "See the details in CloudWatch Log Stream: " + context.logStreamName,
       PhysicalResourceId: physicalResourceId || context.logStreamName,
       StackId: event.StackId,
       RequestId: event.RequestId,
       LogicalResourceId: event.LogicalResourceId,
+      NoEcho: noEcho || false,
       Data: responseData
     });
     console.log("Response body:\n", responseBody);
-    var https = require("https");
-    var url = require("url");
-    var parsedUrl = url.parse(event.ResponseURL);
-    var options = {
+    const https = require("https");
+    const url = require("url");
+    const parsedUrl = url.parse(event.ResponseURL);
+    const options = {
       hostname: parsedUrl.hostname,
       port: 443,
       path: parsedUrl.path,
@@ -58,26 +40,21 @@ var require_cfn_response = __commonJS((exports2) => {
         "content-length": responseBody.length
       }
     };
-    var request = https.request(options, function(response) {
+    const request = https.request(options, function(response) {
       console.log("Status code: " + response.statusCode);
       console.log("Status message: " + response.statusMessage);
-      context.done();
+      resolve();
     });
     request.on("error", function(error) {
       console.log("send(..) failed executing https.request(..): " + error);
-      context.done();
+      reject(error);
     });
     request.write(responseBody);
     request.end();
-  };
-});
+  });
+};
 
 // app.ts
-__markAsModule(exports);
-__export(exports, {
-  handler: () => handler
-});
-var cfnResponse = __toModule(require_cfn_response());
 var AWS = require("aws-sdk");
 var handler = async (event, context) => {
   console.log(`Received : ${event.RequestType}`);
@@ -142,7 +119,12 @@ var setSecretValue = async (path, ssmClients, secret) => {
     const promise = client.putParameter(params).promise();
     promises.push(promise);
   });
-  return Promise.all(promises);
+  try {
+    return Promise.all(promises);
+  } catch (error) {
+    console.log(error);
+    throw new Error(`Failed to to create secret located at ${path}, cause : ${error}`);
+  }
 };
 var deleteSecret = async (path, ssmClients) => {
   const promises = [];
@@ -153,7 +135,12 @@ var deleteSecret = async (path, ssmClients) => {
     const promise = client.deleteParameter(params).promise();
     promises.push(promise);
   });
-  return Promise.all(promises);
+  try {
+    return Promise.all(promises);
+  } catch (error) {
+    console.log(error);
+    throw new Error(`Failed to to remove secret located at ${path}, cause : ${error}`);
+  }
 };
 var describeParameter = async (path, ssmClients) => {
   const promises = [];
@@ -169,12 +156,22 @@ var describeParameter = async (path, ssmClients) => {
     const promise = client.describeParameters(params).promise();
     promises.push(promise);
   });
-  return Promise.all(promises);
+  try {
+    return Promise.all(promises).then((params) => {
+      if (params.filter((param) => !param.Parameters.length).length !== 0) {
+        throw new Error(`Secret not found ${path}`);
+      }
+      return params;
+    });
+  } catch (error) {
+    console.log(error);
+    throw new Error(`Failed to to describe secret located at ${path}, cause : ${error}`);
+  }
 };
 var handleError = async (event, context, cause) => {
   const error = new Error(cause);
-  cfnResponse.send(event, context, cfnResponse.FAILED, error);
+  return send(event, context, FAILED, error);
 };
 var handleSuccess = async (event, context) => {
-  cfnResponse.send(event, context, cfnResponse.SUCCESS, {});
+  return send(event, context, SUCCESS, {});
 };

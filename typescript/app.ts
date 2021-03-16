@@ -116,7 +116,7 @@ const deleteSecret = async (
 };
 
 const describeParameter = async (path: string, ssmClients: SSM[]): Promise<DescribeParametersResult[]> => {
-    const promises: Promise<DeleteParameterResult>[] = [];
+    const promises: Promise<DescribeParametersResult>[] = [];
     ssmClients.forEach(client => {
         const params: AWS.SSM.DescribeParametersRequest = {
             ParameterFilters: [
@@ -132,7 +132,13 @@ const describeParameter = async (path: string, ssmClients: SSM[]): Promise<Descr
     });
 
     try {
-        return Promise.all(promises);
+        return Promise.all(promises).then(params => {
+            if (params.filter((param) => !param.Parameters!.length).length !== 0) {
+                throw new Error(`Secret not found ${path}`);
+            }
+
+            return params;
+        });
     } catch (error) {
         console.log(error);
         throw new Error(`Failed to to describe secret located at ${path}, cause : ${error}`);
