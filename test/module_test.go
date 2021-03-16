@@ -54,7 +54,7 @@ func TestModule(t *testing.T) {
 			"positive_test_existing_replace_ssm_parameter_name": positiveTestExistingReplaceSsmParameterName,
 			"positive_test_ssm_parameter_multiple_regions":      positiveTestSsmParameterNameMultipleRegions,
 			"aws_region": region,
-			"regions":    [2]string{region, "eu-west-1"},
+			"regions":    "us-east-1,eu-west-1",
 		},
 	}
 
