@@ -38,7 +38,7 @@ module "lambda" {
 
 module "positive_test_ssm_parameter" {
   source  = "Adaptavist/aws-secret/module"
-  version = "1.0.1"
+  version = "1.1.0"
 
   secret_lambda_function_name = module.lambda.lambda_name
   secret_ssm_path             = var.positive_test_ssm_parameter_name
@@ -50,7 +50,7 @@ module "positive_test_ssm_parameter" {
 
 module "positive_test_existing_ssm_parameter" {
   source  = "Adaptavist/aws-secret/module"
-  version = "1.0.1"
+  version = "1.1.0"
 
   secret_lambda_function_name = module.lambda.lambda_name
   secret_ssm_path             = var.positive_test_existing_ssm_parameter_name
@@ -64,7 +64,7 @@ module "positive_test_existing_ssm_parameter" {
 
 module "positive_test_existing_replace_ssm_parameter" {
   source  = "Adaptavist/aws-secret/module"
-  version = "1.0.1"
+  version = "1.1.0"
 
   secret_lambda_function_name = module.lambda.lambda_name
   secret_ssm_path             = var.positive_test_existing_replace_ssm_parameter_name
