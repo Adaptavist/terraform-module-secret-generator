@@ -1,8 +1,8 @@
 import { AWSError, SSM } from 'aws-sdk';
 import { Context } from 'aws-lambda';
-import * as cfnResponse from 'cfn-response';
 import { GetRandomPasswordResponse } from 'aws-sdk/clients/secretsmanager';
 import { DeleteParameterResult, DescribeParametersResult, PutParameterResult } from 'aws-sdk/clients/ssm';
+import { FAILED, send, SUCCESS } from './cfnResponse';
 import AWS = require('aws-sdk');
 
 export const handler = async (
@@ -125,11 +125,11 @@ const describeParameter = async (path: string, ssmClients: SSM[]): Promise<Descr
 
 const handleError = async (event: any, context: Context, cause: string) => {
     const error = new Error(cause);
-    cfnResponse.send(event, context, cfnResponse.FAILED, error);
+    return send(event, context, FAILED, error);
 };
 
 const handleSuccess = async (event: any, context: Context) => {
-    cfnResponse.send(event, context, cfnResponse.SUCCESS, {});
+    return send(event, context, SUCCESS, {});
 };
 
 // , function (err, data) {
