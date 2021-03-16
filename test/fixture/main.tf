@@ -75,3 +75,18 @@ module "positive_test_existing_replace_ssm_parameter" {
 
   depends_on = [module.lambda]
 }
+
+module "positive_test_ssm_parameter_multiple_regions" {
+  source  = "Adaptavist/aws-secret/module"
+  version = "1.1.0"
+
+  secret_lambda_function_name = module.lambda.lambda_name
+  secret_ssm_path             = var.positive_test_existing_replace_ssm_parameter_name
+  tags                        = local.tags
+  stage                       = local.stage
+  regions                     = var.regions
+
+  respect_initial_value = false
+
+  depends_on = [module.lambda]
+}

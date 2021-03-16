@@ -37,6 +37,7 @@ func TestModule(t *testing.T) {
 	positiveTestSsmParameterName := "/modules-avst-secret-generator/tests/test-1-" + postfix
 	positiveTestExistingSsmParameterName := "/modules-avst-secret-generator/tests/test-2-" + postfix
 	positiveTestExistingReplaceSsmParameterName := "/modules-avst-secret-generator/tests/test-3-" + postfix
+	positiveTestSsmParameterNameMultipleRegions := "/modules-avst-secret-generator/tests/test-4-" + postfix
 
 	// Terraforming
 	terraformOptions := &terraform.Options{
@@ -51,7 +52,9 @@ func TestModule(t *testing.T) {
 			"positive_test_ssm_parameter_name":                  positiveTestSsmParameterName,
 			"positive_test_existing_ssm_parameter_name":         positiveTestExistingSsmParameterName,
 			"positive_test_existing_replace_ssm_parameter_name": positiveTestExistingReplaceSsmParameterName,
+			"positive_test_ssm_parameter_multiple_regions":      positiveTestSsmParameterNameMultipleRegions,
 			"aws_region": region,
+			"regions":    [2]string{region, "eu-west-1"},
 		},
 	}
 
@@ -67,6 +70,8 @@ func TestModule(t *testing.T) {
 	assert.NotNil(t, aws.GetParameter(t, region, positiveTestSsmParameterName))
 	assert.Equal(t, aws.GetParameter(t, region, positiveTestExistingSsmParameterName), testSsmValue)
 	assert.NotEqual(t, aws.GetParameter(t, region, positiveTestExistingReplaceSsmParameterName), testSsmValue)
+	assert.NotNil(t, aws.GetParameter(t, region, positiveTestSsmParameterNameMultipleRegions))
+	assert.NotNil(t, aws.GetParameter(t, "eu-west-1", positiveTestSsmParameterNameMultipleRegions))
 
 	terraform.Destroy(t, terraformOptions)
 
