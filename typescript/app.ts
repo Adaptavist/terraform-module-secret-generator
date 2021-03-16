@@ -32,8 +32,10 @@ export const handler = async (
         let result;
         if (event.RequestType === 'Create') {
             if (respectInitialValue === 'true') {
-                await describeParameter(path, ssmClients);
-                return handleSuccess(event, context);
+                const params = await describeParameter(path, ssmClients);
+                if (params.length) {
+                    return handleSuccess(event, context);
+                }
             }
             result = await setSecretValue(path, ssmClients, secret);
         }
@@ -133,12 +135,9 @@ const describeParameter = async (path: string, ssmClients: SSM[], ignoreErrors: 
     });
 
     try {
-        const params = await Promise.all(promises);
-        if (params.filter((param) => !param.Parameters!.length).length !== 0 && !ignoreErrors) {
-            throw new Error(`Secret not found ${path}`);
-        }
-
-        return params;
+        return Promise.all(promises).then(params => {
+            return params.filter((param) => param.Parameters!.length);
+        });
     } catch (error) {
         console.log(error);
         throw new Error(`Failed to to describe secret located at ${path}, cause : ${error}`);
