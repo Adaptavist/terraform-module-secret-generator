@@ -12,7 +12,7 @@ export const handler = async (
     console.log(`Received : ${event.RequestType}`);
 
     if (!event || !event.ResourceProperties.path) {
-        return handleError(event, context, 'No path was specified for the SSM parameter the secret will be stored in. Cannot continue.');
+        return handleError(event, context, { message: 'No path was specified for the SSM parameter the secret will be stored in. Cannot continue.' });
     }
 
     const path = event.ResourceProperties.path;
@@ -34,7 +34,7 @@ export const handler = async (
             if (respectInitialValue === 'true') {
                 const params = await describeParameter(path, ssmClients);
                 if (params.length) {
-                    return handleSuccess(event, context, params);
+                    return handleSuccess(event, context, { params });
                 }
             }
             result = await setSecretValue(path, ssmClients, secret);
@@ -43,15 +43,15 @@ export const handler = async (
         if (event.RequestType === 'Delete') {
             const params = await describeParameter(path, ssmClients);
             if (!params.length) {
-                return handleSuccess(event, context, params);
+                return handleSuccess(event, context, { params });
             }
             result = await deleteSecret(path, ssmClients);
         }
 
-        return handleSuccess(event, context, result);
+        return handleSuccess(event, context, { result });
     } catch (error) {
         console.log(error);
-        return handleError(event, context, error);
+        return handleError(event, context, { error });
     }
 };
 
@@ -147,10 +147,10 @@ const describeParameter = async (path: string, ssmClients: SSM[]) : Promise<Desc
     }
 };
 
-const handleError = async (event: any, context: Context, cause: any) => {
-    return send(event, context, FAILED, { cause });
+const handleError = async (event: any, context: Context, cause: object) => {
+    return send(event, context, FAILED, cause);
 };
 
-const handleSuccess = async (event: any, context: Context, data: any) => {
+const handleSuccess = async (event: any, context: Context, data: object) => {
     return send(event, context, SUCCESS, data);
 };
