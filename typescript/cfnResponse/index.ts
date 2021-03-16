@@ -7,7 +7,7 @@ import { IncomingMessage } from 'http';
 const SUCCESS = 'SUCCESS';
 const FAILED = 'FAILED';
 
-const send = async (event: any, context: Context, responseStatus: any, responseData: any, physicalResourceId?: any, noEcho?: boolean): Promise<void> => {
+const send = async (event: any, context: Context, responseStatus: any, responseData: any, error?: any, physicalResourceId?: any, noEcho?: boolean): Promise<void> => {
     return new Promise((resolve, reject) => {
         const responseBody = JSON.stringify({
             Status: responseStatus,

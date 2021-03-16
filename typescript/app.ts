@@ -145,9 +145,9 @@ const describeParameter = async (path: string, ssmClients: SSM[]): Promise<Descr
     }
 };
 
-const handleError = async (event: any, context: Context, cause: string) => {
-    const error = new Error(cause);
-    return send(event, context, FAILED, error);
+const handleError = async (event: any, context: Context, cause: any) => {
+    // const error = new Error(cause);
+    return send(event, context, FAILED, cause);
 };
 
 const handleSuccess = async (event: any, context: Context) => {
