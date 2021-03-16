@@ -86,7 +86,12 @@ const setSecretValue = async (
         promises.push(promise);
     });
 
-    return Promise.all(promises);
+    try {
+        return Promise.all(promises);
+    } catch (error) {
+        console.log(error);
+        throw new Error(`Failed to to create secret located at ${path}, cause : ${error}`);
+    }
 };
 
 const deleteSecret = async (
@@ -101,7 +106,13 @@ const deleteSecret = async (
         const promise = client.deleteParameter(params).promise();
         promises.push(promise);
     });
-    return Promise.all(promises);
+
+    try {
+        return Promise.all(promises);
+    } catch (error) {
+        console.log(error);
+        throw new Error(`Failed to to remove secret located at ${path}, cause : ${error}`);
+    }
 };
 
 const describeParameter = async (path: string, ssmClients: SSM[]): Promise<DescribeParametersResult[]> => {
@@ -120,7 +131,12 @@ const describeParameter = async (path: string, ssmClients: SSM[]): Promise<Descr
         promises.push(promise);
     });
 
-    return Promise.all(promises);
+    try {
+        return Promise.all(promises);
+    } catch (error) {
+        console.log(error);
+        throw new Error(`Failed to to describe secret located at ${path}, cause : ${error}`);
+    }
 };
 
 const handleError = async (event: any, context: Context, cause: string) => {
