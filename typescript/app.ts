@@ -45,6 +45,7 @@ export const handler = async (
 
         return handleSuccess(event, context, result);
     } catch (error) {
+        console.log(error);
         return handleError(event, context, error);
     }
 };
