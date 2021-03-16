@@ -133,13 +133,12 @@ const describeParameter = async (path: string, ssmClients: SSM[]): Promise<Descr
     });
 
     try {
-        return Promise.all(promises).then(params => {
-            if (params.filter((param) => !param.Parameters!.length).length !== 0) {
-                throw new Error(`Secret not found ${path}`);
-            }
+        const params = await Promise.all(promises);
+        if (params.filter((param) => !param.Parameters!.length).length !== 0) {
+            throw new Error(`Secret not found ${path}`);
+        }
 
-            return params;
-        });
+        return params;
     } catch (error) {
         console.log(error);
         throw new Error(`Failed to to describe secret located at ${path}, cause : ${error}`);
