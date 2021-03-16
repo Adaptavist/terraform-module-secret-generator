@@ -39,7 +39,7 @@ export const handler = async (
         }
 
         if (event.RequestType === 'Delete') {
-            await describeParameter(path, ssmClients, false);
+            await describeParameter(path, ssmClients, true);
             result = await deleteSecret(path, ssmClients);
         }
 
@@ -116,7 +116,7 @@ const deleteSecret = async (
     }
 };
 
-const describeParameter = async (path: string, ssmClients: SSM[], respectInitialValue: boolean = true) : Promise<DescribeParametersResult[]> => {
+const describeParameter = async (path: string, ssmClients: SSM[], ignoreErrors: boolean = false) : Promise<DescribeParametersResult[]> => {
     const promises: Promise<DescribeParametersResult>[] = [];
     ssmClients.forEach(client => {
         const params: AWS.SSM.DescribeParametersRequest = {
@@ -134,7 +134,7 @@ const describeParameter = async (path: string, ssmClients: SSM[], respectInitial
 
     try {
         const params = await Promise.all(promises);
-        if (params.filter((param) => !param.Parameters!.length).length !== 0 && respectInitialValue) {
+        if (params.filter((param) => !param.Parameters!.length).length !== 0 && !ignoreErrors) {
             throw new Error(`Secret not found ${path}`);
         }
 
