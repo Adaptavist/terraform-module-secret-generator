@@ -125,11 +125,11 @@ const describeParameter = async (path: string, ssmClients: SSM[]): Promise<Descr
 
 const handleError = async (event: any, context: Context, cause: string) => {
     const error = new Error(cause);
-    return cfnResponse.send(event, context, cfnResponse.FAILED, error);
+    cfnResponse.send(event, context, cfnResponse.FAILED, error);
 };
 
 const handleSuccess = async (event: any, context: Context) => {
-    return cfnResponse.send(event, context, cfnResponse.SUCCESS, {});
+    cfnResponse.send(event, context, cfnResponse.SUCCESS, {});
 };
 
 // , function (err, data) {

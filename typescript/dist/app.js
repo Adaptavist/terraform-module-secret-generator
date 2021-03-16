@@ -173,8 +173,8 @@ var describeParameter = async (path, ssmClients) => {
 };
 var handleError = async (event, context, cause) => {
   const error = new Error(cause);
-  return cfnResponse.send(event, context, cfnResponse.FAILED, error);
+  cfnResponse.send(event, context, cfnResponse.FAILED, error);
 };
 var handleSuccess = async (event, context) => {
-  return cfnResponse.send(event, context, cfnResponse.SUCCESS, {});
+  cfnResponse.send(event, context, cfnResponse.SUCCESS, {});
 };
