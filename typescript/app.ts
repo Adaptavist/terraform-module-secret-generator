@@ -34,7 +34,7 @@ export const handler = async (
             if (respectInitialValue === 'true') {
                 const params = await describeParameter(path, ssmClients);
                 if (params.length) {
-                    return handleSuccess(event, context);
+                    return handleSuccess(event, context, params);
                 }
             }
             result = await setSecretValue(path, ssmClients, secret);
@@ -43,7 +43,7 @@ export const handler = async (
         if (event.RequestType === 'Delete') {
             const params = await describeParameter(path, ssmClients);
             if (!params.length) {
-                return handleSuccess(event, context);
+                return handleSuccess(event, context, params);
             }
             result = await deleteSecret(path, ssmClients);
         }
@@ -151,6 +151,6 @@ const handleError = async (event: any, context: Context, cause: any) => {
     return send(event, context, FAILED, { cause });
 };
 
-const handleSuccess = async (event: any, context: Context, data?: any) => {
+const handleSuccess = async (event: any, context: Context, data: any) => {
     return send(event, context, SUCCESS, data);
 };
