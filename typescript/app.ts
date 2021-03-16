@@ -33,6 +33,7 @@ export const handler = async (
         if (event.RequestType === 'Create') {
             if (respectInitialValue === 'true') {
                 await describeParameter(path, ssmClients);
+                return handleSuccess(event, context);
             }
             await setSecretValue(path, ssmClients, secret);
         }
