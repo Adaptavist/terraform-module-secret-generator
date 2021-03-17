@@ -20,7 +20,9 @@ export const handler = async (
     const includeSpaces = event.ResourceProperties.includeSpaces || false;
     const secretLength = event.ResourceProperties.secretLength || 40;
     const regions: string[] = event.ResourceProperties.regions;
-    const ssmClients: SSM[] = regions.map(region => { return new AWS.SSM({ region: region }); });
+    const ssmClients: SSM[] = regions.map(region => {
+        return new AWS.SSM({ region: region });
+    });
 
     console.log(`path : ${path}`);
     console.log(`respectInitialValue : ${respectInitialValue}`);
@@ -33,7 +35,9 @@ export const handler = async (
         if (event.RequestType === 'Create') {
             if (respectInitialValue === 'true') {
                 const params = await describeParameter(path, ssmClients);
-                if (params.length) {
+                if (params.length && params.length !== regions.length) {
+                    throw new Error(`Parameters not found in all regions ${regions} with respectInitialValue ${respectInitialValue}`);
+                } else if (params.length && params.length === regions.length) {
                     return handleSuccess(event, context, { params });
                 }
             }
@@ -103,7 +107,7 @@ const setSecretValue = async (
 const deleteSecret = async (
     path: string,
     ssmClients: SSM[]
-) : Promise<DeleteParameterResult[]> => {
+): Promise<DeleteParameterResult[]> => {
     const promises: Promise<DeleteParameterResult>[] = [];
     ssmClients.forEach(client => {
         const params = {
@@ -121,7 +125,7 @@ const deleteSecret = async (
     }
 };
 
-const describeParameter = async (path: string, ssmClients: SSM[]) : Promise<DescribeParametersResult[]> => {
+const describeParameter = async (path: string, ssmClients: SSM[]): Promise<DescribeParametersResult[]> => {
     const promises: Promise<DescribeParametersResult>[] = [];
     ssmClients.forEach(client => {
         const params: AWS.SSM.DescribeParametersRequest = {
