@@ -120,8 +120,8 @@ const deleteSecret = async (
     try {
         return Promise.all(promises);
     } catch (error) {
-        console.log(error);
-        throw new Error(`Failed to to remove secret located at ${path}, cause : ${error}`);
+        console.warn(error);
+        return [];
     }
 };
 
