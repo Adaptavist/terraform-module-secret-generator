@@ -88,7 +88,7 @@ func TestModule(t *testing.T) {
 	defer terraform.Destroy(t, terraformFailOptions)
 	terraform.InitAndApply(t, terraformOptions)
 
-	var _, fail = terraform.InitAndApply(t, terraformFailOptions)
+	var _, fail = terraform.InitAndApplyE(t, terraformFailOptions)
 	assert.Error(t, fail, "")
 
 	//assert stuff
