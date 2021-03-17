@@ -62,6 +62,21 @@ func TestModule(t *testing.T) {
 		},
 	}
 
+	terraformFailOptions := &terraform.Options{
+		NoColor: true,
+		Lock:    true,
+		BackendConfig: map[string]interface{}{
+			"key":      "modules/modules-avst-secret-generator/tests/fixures/default/" + postfix,
+			"role_arn": assumeRoleArn,
+		},
+		TerraformDir: "fixture",
+		Vars: map[string]interface{}{
+			"positive_test_existing_ssm_parameter_multiple_regions": positiveTestExistingSsmParameterNameMultipleRegions,
+			"aws_region": region,
+			"regions":    "[\"us-east-1\", \"eu-west-1\"]",
+		},
+	}
+
 	// create existing values
 	aws.PutParameter(t, region, positiveTestExistingSsmParameterName, "Existing SSM param, this should not have its value replaced", testSsmValue)
 	aws.PutParameter(t, region, positiveTestExistingReplaceSsmParameterName, "Existing SSM param, this SHOULD have its value replaced", testSsmValue)
@@ -70,7 +85,11 @@ func TestModule(t *testing.T) {
 
 	// setup TF stack
 	defer terraform.Destroy(t, terraformOptions)
+	defer terraform.Destroy(t, terraformFailOptions)
 	terraform.InitAndApply(t, terraformOptions)
+
+	var _, fail = terraform.InitAndApply(t, terraformFailOptions)
+	assert.Error(t, fail, "")
 
 	//assert stuff
 	assert.NotNil(t, aws.GetParameter(t, region, positiveTestSsmParameterName))
