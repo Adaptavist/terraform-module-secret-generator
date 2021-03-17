@@ -20,9 +20,11 @@ export const handler = async (
     const includeSpaces = event.ResourceProperties.includeSpaces || false;
     const secretLength = event.ResourceProperties.secretLength || 40;
     const regions: string[] = event.ResourceProperties.regions;
-    const ssmClients: SSM[] = regions.map(region => {
-        return new AWS.SSM({ region: region });
-    });
+    const ssmClients: SSM[] = !regions
+        ? [new AWS.SSM()]
+        : regions.map(region => {
+            return new AWS.SSM({ region: region });
+        });
 
     console.log(`path : ${path}`);
     console.log(`respectInitialValue : ${respectInitialValue}`);
