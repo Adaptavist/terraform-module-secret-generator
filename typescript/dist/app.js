@@ -18,7 +18,7 @@ var send = async (event, context, responseStatus, responseData, error, physicalR
   return new Promise((resolve, reject) => {
     const responseBody = JSON.stringify({
       Status: responseStatus,
-      Reason: `See the details in CloudWatch Log Group ${context.logGroupName} Log Stream ${context.logStreamName}`,
+      Reason: `See the details in CloudWatch Log Group ${context.logGroupName} Log Stream ${context.logStreamName}; response ${JSON.stringify(responseData)}`,
       PhysicalResourceId: physicalResourceId || context.logStreamName,
       StackId: event.StackId,
       RequestId: event.RequestId,
@@ -66,7 +66,7 @@ var handler = async (event, context) => {
   const includeSpaces = event.ResourceProperties.includeSpaces || false;
   const secretLength = event.ResourceProperties.secretLength || 40;
   const regions = event.ResourceProperties.regions;
-  const ssmClients = regions.map((region) => {
+  const ssmClients = !regions ? [new AWS.SSM()] : regions.map((region) => {
     return new AWS.SSM({region});
   });
   console.log(`path : ${path}`);
@@ -79,7 +79,9 @@ var handler = async (event, context) => {
     if (event.RequestType === "Create") {
       if (respectInitialValue === "true") {
         const params = await describeParameter(path, ssmClients);
-        if (params.length) {
+        if (params.length && params.length !== regions.length) {
+          throw new Error(`Parameters not found in all regions ${regions} with respectInitialValue ${respectInitialValue}`);
+        } else if (params.length && params.length === regions.length) {
           return handleSuccess(event, context, {params});
         }
       }
@@ -145,8 +147,8 @@ var deleteSecret = async (path, ssmClients) => {
   try {
     return Promise.all(promises);
   } catch (error) {
-    console.log(error);
-    throw new Error(`Failed to to remove secret located at ${path}, cause : ${error}`);
+    console.warn(error);
+    return [];
   }
 };
 var describeParameter = async (path, ssmClients) => {
@@ -165,7 +167,7 @@ var describeParameter = async (path, ssmClients) => {
   });
   try {
     return Promise.all(promises).then((params) => {
-      return params.filter((param) => param.Parameters.length);
+      return params.filter((param) => param.Parameters && param.Parameters.length);
     });
   } catch (error) {
     console.log(error);
