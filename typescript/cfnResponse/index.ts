@@ -11,7 +11,7 @@ const send = async (event: any, context: Context, responseStatus: any, responseD
     return new Promise((resolve, reject) => {
         const responseBody = JSON.stringify({
             Status: responseStatus,
-            Reason: `See the details in CloudWatch Log Group ${context.logGroupName} Log Stream ${context.logStreamName}; response ${responseData}`,
+            Reason: `See the details in CloudWatch Log Group ${context.logGroupName} Log Stream ${context.logStreamName}; response ${JSON.stringify(responseData)}`,
             PhysicalResourceId: physicalResourceId || context.logStreamName,
             StackId: event.StackId,
             RequestId: event.RequestId,
