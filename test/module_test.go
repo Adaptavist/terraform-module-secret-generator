@@ -85,4 +85,10 @@ func TestModule(t *testing.T) {
 
 	var _, error3 = aws.GetParameterE(t, region, positiveTestExistingReplaceSsmParameterName)
 	assert.Error(t, error3, "ParameterNotFound")
+
+	var _, error4 = aws.GetParameterE(t, region, positiveTestSsmParameterNameMultipleRegions)
+	assert.Error(t, error4, "ParameterNotFound")
+
+	var _, error5 = aws.GetParameterE(t, "eu-west-1", positiveTestSsmParameterNameMultipleRegions)
+	assert.Error(t, error5, "ParameterNotFound")
 }
