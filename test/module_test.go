@@ -38,6 +38,7 @@ func TestModule(t *testing.T) {
 	positiveTestExistingSsmParameterName := "/modules-avst-secret-generator/tests/test-2-" + postfix
 	positiveTestExistingReplaceSsmParameterName := "/modules-avst-secret-generator/tests/test-3-" + postfix
 	positiveTestSsmParameterNameMultipleRegions := "/modules-avst-secret-generator/tests/test-4-" + postfix
+	positiveTestExistingSsmParameterNameMultipleRegions := "/modules-avst-secret-generator/tests/test-5-" + postfix
 
 	// Terraforming
 	terraformOptions := &terraform.Options{
@@ -49,10 +50,11 @@ func TestModule(t *testing.T) {
 		},
 		TerraformDir: "fixture",
 		Vars: map[string]interface{}{
-			"positive_test_ssm_parameter_name":                  positiveTestSsmParameterName,
-			"positive_test_existing_ssm_parameter_name":         positiveTestExistingSsmParameterName,
-			"positive_test_existing_replace_ssm_parameter_name": positiveTestExistingReplaceSsmParameterName,
-			"positive_test_ssm_parameter_multiple_regions":      positiveTestSsmParameterNameMultipleRegions,
+			"positive_test_ssm_parameter_name":                      positiveTestSsmParameterName,
+			"positive_test_existing_ssm_parameter_name":             positiveTestExistingSsmParameterName,
+			"positive_test_existing_replace_ssm_parameter_name":     positiveTestExistingReplaceSsmParameterName,
+			"positive_test_ssm_parameter_multiple_regions":          positiveTestSsmParameterNameMultipleRegions,
+			"positive_test_existing_ssm_parameter_multiple_regions": positiveTestExistingSsmParameterNameMultipleRegions,
 			"aws_region": region,
 			"regions":    "[\"us-east-1\", \"eu-west-1\"]",
 		},
@@ -61,6 +63,7 @@ func TestModule(t *testing.T) {
 	// create existing values
 	aws.PutParameter(t, region, positiveTestExistingSsmParameterName, "Existing SSM param, this should not have its value replaced", testSsmValue)
 	aws.PutParameter(t, region, positiveTestExistingReplaceSsmParameterName, "Existing SSM param, this SHOULD have its value replaced", testSsmValue)
+	aws.PutParameter(t, region, positiveTestExistingSsmParameterNameMultipleRegions, "Existing SSM param, this SHOULD have its value replaced", testSsmValue)
 
 	// setup TF stack
 	defer terraform.Destroy(t, terraformOptions)
@@ -71,7 +74,12 @@ func TestModule(t *testing.T) {
 	assert.Equal(t, aws.GetParameter(t, region, positiveTestExistingSsmParameterName), testSsmValue)
 	assert.NotEqual(t, aws.GetParameter(t, region, positiveTestExistingReplaceSsmParameterName), testSsmValue)
 	assert.NotNil(t, aws.GetParameter(t, region, positiveTestSsmParameterNameMultipleRegions))
+
 	assert.NotNil(t, aws.GetParameter(t, "eu-west-1", positiveTestSsmParameterNameMultipleRegions))
+	assert.Equal(t, aws.GetParameter(t, region, positiveTestSsmParameterNameMultipleRegions), aws.GetParameter(t, "eu-west-1", positiveTestSsmParameterNameMultipleRegions))
+
+	assert.NotEqual(t, aws.GetParameter(t, region, positiveTestExistingSsmParameterNameMultipleRegions), testSsmValue)
+	assert.NotEqual(t, aws.GetParameter(t, "eu-west-1", positiveTestExistingSsmParameterNameMultipleRegions), testSsmValue)
 
 	terraform.Destroy(t, terraformOptions)
 
@@ -88,6 +96,12 @@ func TestModule(t *testing.T) {
 
 	var _, error4 = aws.GetParameterE(t, region, positiveTestSsmParameterNameMultipleRegions)
 	assert.Error(t, error4, "ParameterNotFound")
+
+	var _, error5 = aws.GetParameterE(t, "eu-west-1", positiveTestSsmParameterNameMultipleRegions)
+	assert.Error(t, error5, "ParameterNotFound")
+
+	var _, error5 = aws.GetParameterE(t, "eu-west-1", positiveTestSsmParameterNameMultipleRegions)
+	assert.Error(t, error5, "ParameterNotFound")
 
 	var _, error5 = aws.GetParameterE(t, "eu-west-1", positiveTestSsmParameterNameMultipleRegions)
 	assert.Error(t, error5, "ParameterNotFound")
