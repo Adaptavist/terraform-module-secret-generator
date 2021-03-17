@@ -143,7 +143,7 @@ const describeParameter = async (path: string, ssmClients: SSM[]): Promise<Descr
 
     try {
         return Promise.all(promises).then(params => {
-            return params.filter((param) => param.Parameters!.length);
+            return params.filter((param) => param.Parameters && param.Parameters.length);
         });
     } catch (error) {
         console.log(error);
