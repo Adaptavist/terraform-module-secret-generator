@@ -14,7 +14,7 @@ import (
 
 var assumeRoleArn = os.Getenv("SANDBOX_ORG_ROLE_ARN")
 
-const testSsmValue = "IamAtestSsmParmeter"
+const testSsmValue = "IamAtestSsmParameter"
 const region = "us-east-1"
 
 var seededRand = rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -70,25 +70,29 @@ func TestModule(t *testing.T) {
 
 	// setup TF stack
 	defer terraform.Destroy(t, terraformOptions)
+
+	// One failure for trying to create a parameter in a second region when there's already a parameter in the first region
 	_, fail := terraform.InitAndApplyE(t, terraformOptions)
 	assert.Error(t, fail, "")
 
-	//assert stuff
+	// Assertions
 	assert.NotNil(t, aws.GetParameter(t, region, positiveTestSsmParameterName))
 	assert.Equal(t, aws.GetParameter(t, region, positiveTestExistingSsmParameterName), testSsmValue)
 	assert.NotEqual(t, aws.GetParameter(t, region, positiveTestExistingReplaceSsmParameterName), testSsmValue)
 	assert.NotNil(t, aws.GetParameter(t, region, positiveTestSsmParameterNameMultipleRegions))
 
+	// Non-existent parameters in any of the regions - should be created and values should match
 	assert.NotNil(t, aws.GetParameter(t, "eu-west-1", positiveTestSsmParameterNameMultipleRegions))
 	assert.Equal(t, aws.GetParameter(t, region, positiveTestSsmParameterNameMultipleRegions), aws.GetParameter(t, "eu-west-1", positiveTestSsmParameterNameMultipleRegions))
 
+	// Initial parameter is there and upon stack deletion the parameter should not be removed
 	assert.Equal(t, aws.GetParameter(t, region, positiveTestExistingSsmParameterNameMultipleRegions), testSsmValue)
 	_, e := aws.GetParameterE(t, "eu-west-1", positiveTestExistingSsmParameterNameMultipleRegions)
 	assert.Error(t, e, "ParameterNotFound")
 
 	terraform.Destroy(t, terraformOptions)
 
-	//confirm ssm paramters are gone after destroy
+	//confirm ssm parameters are gone after destroy
 
 	var _, error1 = aws.GetParameterE(t, region, positiveTestSsmParameterName)
 	assert.Error(t, error1, "ParameterNotFound")
