@@ -129,7 +129,7 @@ var setSecretValue = async (path, ssmClients, secret) => {
     promises.push(promise);
   });
   try {
-    return Promise.all(promises);
+    return await Promise.all(promises);
   } catch (error) {
     console.log(error);
     throw new Error(`Failed to to create secret located at ${path}, cause : ${error}`);
@@ -145,9 +145,12 @@ var deleteSecret = async (path, ssmClients) => {
     promises.push(promise);
   });
   try {
-    return Promise.all(promises);
+    return await Promise.all(promises);
   } catch (error) {
     console.warn(error);
+    if (error.code === "AccessDeniedException") {
+      throw error;
+    }
     return [];
   }
 };
@@ -166,7 +169,7 @@ var describeParameter = async (path, ssmClients) => {
     promises.push(promise);
   });
   try {
-    return Promise.all(promises).then((params) => {
+    return await Promise.all(promises).then((params) => {
       return params.filter((param) => param.Parameters && param.Parameters.length);
     });
   } catch (error) {
