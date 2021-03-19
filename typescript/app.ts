@@ -123,10 +123,10 @@ const deleteSecret = async (
         return await Promise.all(promises);
     } catch (error) {
         console.warn(error);
-        if (error.code === 'AccessDeniedException') {
-            throw error;
+        if (error.code === 'ParameterNotFound') {
+            return [];
         }
-        return [];
+        throw error;
     }
 };
 
