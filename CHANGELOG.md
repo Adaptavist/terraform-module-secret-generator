@@ -1,3 +1,10 @@
+# [1.4.0](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.3.0...v1.4.0) (2021-03-19)
+
+
+### Features
+
+* **regions:** support multiple regions ([d2a6a9c](http://bitbucket.org/adaptavistlabs/module-secret-generator/commits/d2a6a9c1fdd413b3f4ae2b4dd99a4844a09a578d))
+
 # [1.3.0](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.2.0...v1.3.0) (2021-03-04)
 
 
