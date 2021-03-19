@@ -1,183 +1,165 @@
-import { SecretsManager } from "aws-sdk";
-import { Context, Callback } from "aws-lambda";
-import * as cfnResponse from "cfn-response";
-import AWS = require("aws-sdk");
+import { AWSError, SSM } from 'aws-sdk';
+import { Context } from 'aws-lambda';
+import { GetRandomPasswordResponse } from 'aws-sdk/clients/secretsmanager';
+import { DeleteParameterResult, DescribeParametersResult, PutParameterResult } from 'aws-sdk/clients/ssm';
+import { FAILED, send, SUCCESS } from './cfnResponse';
+import AWS = require('aws-sdk');
 
-var ssm = new AWS.SSM();
+export const handler = async (
+    event: any,
+    context: Context
+) => {
+    console.log(`Received : ${event.RequestType}`);
 
-export const handler = function (
-  event: any,
-  context: Context,
-  callback: Callback
-) {
-  function handleError(cause: string) {
-    const error = new Error(cause);
-    cfnResponse.send(event, context, cfnResponse.FAILED, error);
-    callback(error, null);
-  }
-
-  function handleSuccess() {
-    cfnResponse.send(event, context, cfnResponse.SUCCESS, {});
-    callback(null, null);
-  }
-
-  const errorCallback = (cause: string): void => {
-    handleError(cause);
-  };
-
-  const successCallback = (): void => {
-    handleSuccess();
-  };
-
-  function setSecretValue(
-    path: string,
-    errorCallBack: (cause: string) => void,
-    successCallBack: () => void
-  ): void {
-    new SecretsManager()
-      .getRandomPassword({
-        IncludeSpace: includeSpaces,
-        PasswordLength: secretLength,
-        RequireEachIncludedType: true,
-        ExcludePunctuation: true
-      })
-      .send((err, data) => {
-        if (err) {
-          errorCallBack(`Failed to generate password, cause : ${err}`);
-        } else {
-          var params = {
-            Name: path,
-            Value: data.RandomPassword!,
-            Overwrite: true,
-            Type: "SecureString",
-          };
-
-          ssm.putParameter(params, function (err, data) {
-            if (err) {
-              errorCallBack(`Failed to save password in SSM, cause : ${err}`);
-            } else {
-              console.log(`Written secret to ${event.ResourceProperties.path}`);
-              successCallBack();
-            }
-          });
-        }
-      });
-  }
-
-  function applyIfSecretValueSet(
-    path: string,
-    applyToSecret: (path: string) => void,
-    applyToMissingSecret: (path: string) => void,
-    errorCallBack: (cause: string) => void
-  ): void {
-    console.log("checking if secret already exists");
-    var params: AWS.SSM.DescribeParametersRequest = {
-      ParameterFilters: [
-        {
-          Key: "Name",
-          Values: [path],
-        },
-      ],
-    };
-
-    ssm.describeParameters(params, function (err, data) {
-      if (err) {
-        errorCallBack(`Failed to describe secret, cause : ${err}`);
-      } else {
-        if (data.Parameters!.length == 0) {
-          console.log("secret not found, running supplied callback");
-          applyToMissingSecret(path);
-        } else {
-          console.log("secret found, running supplied callback");
-          applyToSecret(path);
-        }
-      }
-    });
-  }
-
-  function deleteSecret(
-    path: string,
-    errorCallBack: (cause: string) => void,
-    successCallBack: () => void
-  ) {
-    var params = {
-      Name: path,
-    };
-    ssm.deleteParameter(params, function (err, data) {
-      if (err) {
-        errorCallBack(
-          `Failed to to remove secret located at ${path}, cause : ${err}`
-        );
-      } else {
-        console.log(`Removed secret located in ${path}`);
-        successCallBack();
-      }
-    });
-  }
-
-  console.log(`Received : ${event.RequestType}`);
-
-  if (
-    !event ||
-    !event.ResourceProperties.path ||
-    event.ResourceProperties.path === undefined
-  ) {
-    handleError(
-      "No path was specified for the SSM parameter the secret will be stored in. Cannot continue."
-    );
-  }
-
-  const path = event.ResourceProperties.path;
-  const respectInitialValue =
-    event.ResourceProperties.respectInitialValue || "false";
-  const includeSpaces = event.ResourceProperties.includeSpaces || false;
-  const secretLength = event.ResourceProperties.secretLength || 40;
-
-  console.log(`path : ${path}`);
-  console.log(`respectInitialValue : ${respectInitialValue}`);
-  console.log(`includeSpaces : ${includeSpaces}`);
-  console.log(`secretLength : ${secretLength}`);
-
-  try {
-    if (event.RequestType === "Create") {
-      if (respectInitialValue === "false") {
-        setSecretValue(path, errorCallback, successCallback);
-      } else if (respectInitialValue === "true") {
-        var secretSetCallback = (path: string): void => {
-          handleSuccess();
-        };
-
-        var missingSecretCallback = (path: string): void => {
-          setSecretValue(path, errorCallback, successCallback);
-        };
-
-        applyIfSecretValueSet(
-          path,
-          secretSetCallback,
-          missingSecretCallback,
-          errorCallback
-        );
-      }
-    } else if (event.RequestType === "Delete") {
-      var deleteSetCallback = (path: string): void => {
-        deleteSecret(path, errorCallback, successCallback);
-      };
-
-      var deleteMissingCallback = (path: string): void => {
-        handleSuccess();
-      };
-
-      applyIfSecretValueSet(
-        path,
-        deleteSetCallback,
-        deleteMissingCallback,
-        errorCallback
-      );
-    } else {
-      // Updates are risky as we can cascade regeneration of secrets when the lambda gets updates etc so safer to not to do anything.
-      handleSuccess();
+    if (!event || !event.ResourceProperties.path) {
+        return handleError(event, context, { message: 'No path was specified for the SSM parameter the secret will be stored in. Cannot continue.' });
     }
-  } catch (e) {
-    handleError(e);
-  }
+
+    const path = event.ResourceProperties.path;
+    const respectInitialValue = event.ResourceProperties.respectInitialValue || 'false';
+    const includeSpaces = event.ResourceProperties.includeSpaces || false;
+    const secretLength = event.ResourceProperties.secretLength || 40;
+    const regions: string[] = event.ResourceProperties.regions;
+    const ssmClients: SSM[] = !regions
+        ? [new AWS.SSM()]
+        : regions.map(region => {
+            return new AWS.SSM({ region: region });
+        });
+
+    console.log(`path : ${path}`);
+    console.log(`respectInitialValue : ${respectInitialValue}`);
+    console.log(`includeSpaces : ${includeSpaces}`);
+    console.log(`secretLength : ${secretLength}`);
+
+    try {
+        const secret = await getRandomSecret(includeSpaces, secretLength);
+        let result;
+        if (event.RequestType === 'Create') {
+            if (respectInitialValue === 'true') {
+                const params = await describeParameter(path, ssmClients);
+                if (params.length && params.length !== regions.length) {
+                    throw new Error(`Parameters not found in all regions ${regions} with respectInitialValue ${respectInitialValue}`);
+                } else if (params.length && params.length === regions.length) {
+                    return handleSuccess(event, context, { params });
+                }
+            }
+            result = await setSecretValue(path, ssmClients, secret);
+        }
+
+        if (event.RequestType === 'Delete') {
+            const params = await describeParameter(path, ssmClients);
+            if (!params.length || (params.length !== regions.length && respectInitialValue)) {
+                return handleSuccess(event, context, { params });
+            }
+            result = await deleteSecret(path, ssmClients);
+        }
+
+        return handleSuccess(event, context, { result });
+    } catch (error) {
+        console.log(error);
+        return handleError(event, context, { error });
+    }
+};
+
+const getRandomSecret = async (includeSpaces: boolean, secretLength: number): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        new AWS.SecretsManager()
+            .getRandomPassword({
+                IncludeSpace: includeSpaces,
+                PasswordLength: secretLength,
+                RequireEachIncludedType: true,
+                ExcludePunctuation: true
+            })
+            .send((err: AWSError, data: GetRandomPasswordResponse) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(data.RandomPassword!);
+                }
+            });
+    });
+};
+
+const setSecretValue = async (
+    path: string,
+    ssmClients: SSM[],
+    secret: string
+): Promise<PutParameterResult[]> => {
+    const promises: Promise<PutParameterResult>[] = [];
+    ssmClients.forEach(client => {
+        const params = {
+            Name: path,
+            Value: secret,
+            Overwrite: true,
+            Type: 'SecureString'
+        };
+
+        const promise = client.putParameter(params).promise();
+        promises.push(promise);
+    });
+
+    try {
+        return await Promise.all(promises);
+    } catch (error) {
+        console.log(error);
+        throw new Error(`Failed to to create secret located at ${path}, cause : ${error}`);
+    }
+};
+
+const deleteSecret = async (
+    path: string,
+    ssmClients: SSM[]
+): Promise<DeleteParameterResult[]> => {
+    const promises: Promise<DeleteParameterResult>[] = [];
+    ssmClients.forEach(client => {
+        const params = {
+            Name: path
+        };
+        const promise = client.deleteParameter(params).promise();
+        promises.push(promise);
+    });
+
+    try {
+        return await Promise.all(promises);
+    } catch (error) {
+        console.warn(error);
+        if (error.code === 'ParameterNotFound') {
+            return [];
+        }
+        throw error;
+    }
+};
+
+const describeParameter = async (path: string, ssmClients: SSM[]): Promise<DescribeParametersResult[]> => {
+    const promises: Promise<DescribeParametersResult>[] = [];
+    ssmClients.forEach(client => {
+        const params: AWS.SSM.DescribeParametersRequest = {
+            ParameterFilters: [
+                {
+                    Key: 'Name',
+                    Values: [path]
+                }
+            ]
+        };
+
+        const promise = client.describeParameters(params).promise();
+        promises.push(promise);
+    });
+
+    try {
+        return await Promise.all(promises).then(params => {
+            return params.filter((param) => param.Parameters && param.Parameters.length);
+        });
+    } catch (error) {
+        console.log(error);
+        throw new Error(`Failed to to describe secret located at ${path}, cause : ${error}`);
+    }
+};
+
+const handleError = async (event: any, context: Context, cause: object) => {
+    return send(event, context, FAILED, cause);
+};
+
+const handleSuccess = async (event: any, context: Context, data: object) => {
+    return send(event, context, SUCCESS, data);
 };
