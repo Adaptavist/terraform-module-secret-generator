@@ -7,6 +7,8 @@ locals {
   finalTags = merge(var.tags, local.stageTag)
 }
 
+data "aws_region" "current" {}
+
 module "aws-lambda" {
   source  = "Adaptavist/aws-lambda/module"
   version = "1.11.0"
@@ -18,9 +20,10 @@ module "aws-lambda" {
   runtime         = "nodejs12.x"
   timeout         = "300"
 
-  namespace = var.namespace
-  stage     = var.stage
-  tags      = local.finalTags
+  namespace  = var.namespace
+  stage      = var.stage
+  tags       = local.finalTags
+  aws_region = data.aws_region.current.name
 }
 
 resource "aws_iam_role_policy" "lambda_exec_role_policy" {
