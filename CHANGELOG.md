@@ -1,3 +1,15 @@
+# [1.5.0](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.4.0...v1.5.0) (2021-10-08)
+
+
+### Bug Fixes
+
+* adding missing var ([299b2d4](http://bitbucket.org/adaptavistlabs/module-secret-generator/commits/299b2d4e44638cb2285ce0d24ab7eb9ee59e976b))
+
+
+### Features
+
+* updated lambda module ([267d13d](http://bitbucket.org/adaptavistlabs/module-secret-generator/commits/267d13dc23d31605b24331de691997d4ef3a3d19))
+
 # [1.4.0](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.3.0...v1.4.0) (2021-03-19)
 
 
