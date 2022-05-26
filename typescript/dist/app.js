@@ -89,7 +89,7 @@ var handler = async (event, context) => {
     }
     if (event.RequestType === "Delete") {
       const params = await describeParameter(path, ssmClients);
-      if (!params || !params.length || params.length !== regions.length && respectInitialValue) {
+      if (!params || !params.length || params.length !== (regions || []).length && respectInitialValue) {
         return handleSuccess(event, context, {params});
       }
       result = await deleteSecret(path, ssmClients);
