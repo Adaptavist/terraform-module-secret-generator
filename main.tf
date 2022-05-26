@@ -3,7 +3,6 @@ locals {
   stageTag = {
     "Avst:Stage:Name" = var.stage
   }
-
   finalTags = merge(var.tags, local.stageTag)
 }
 
