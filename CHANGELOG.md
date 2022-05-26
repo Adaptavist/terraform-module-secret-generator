@@ -1,3 +1,10 @@
+## [1.5.2](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.5.1...v1.5.2) (2022-05-26)
+
+
+### Bug Fixes
+
+* regions might not exist in old modules ([b2e56a0](http://bitbucket.org/adaptavistlabs/module-secret-generator/commits/b2e56a0f51ffef803c4c0b1b8c268c4c02d3f62c))
+
 ## [1.5.1](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.5.0...v1.5.1) (2022-05-26)
 
 
