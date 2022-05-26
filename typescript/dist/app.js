@@ -89,7 +89,7 @@ var handler = async (event, context) => {
     }
     if (event.RequestType === "Delete") {
       const params = await describeParameter(path, ssmClients);
-      if (!params.length || params.length !== regions.length && respectInitialValue) {
+      if (!params || !params.length || params.length !== regions.length && respectInitialValue) {
         return handleSuccess(event, context, {params});
       }
       result = await deleteSecret(path, ssmClients);
@@ -148,10 +148,10 @@ var deleteSecret = async (path, ssmClients) => {
     return await Promise.all(promises);
   } catch (error) {
     console.warn(error);
-    if (error.code === "AccessDeniedException") {
-      throw error;
+    if (error.code === "ParameterNotFound") {
+      return [];
     }
-    return [];
+    throw error;
   }
 };
 var describeParameter = async (path, ssmClients) => {
