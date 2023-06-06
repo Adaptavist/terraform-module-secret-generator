@@ -1,3 +1,10 @@
+## [1.5.3](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.5.2...v1.5.3) (2023-06-06)
+
+
+### Bug Fixes
+
+* bumping runtime version to nodejs14.x ([5166bb7](http://bitbucket.org/adaptavistlabs/module-secret-generator/commits/5166bb71db1886ff35072fd2cdb1061d0c6cd440))
+
 ## [1.5.2](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.5.1...v1.5.2) (2022-05-26)
 
 
