@@ -1,3 +1,10 @@
+## [1.5.4](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.5.3...v1.5.4) (2023-06-07)
+
+
+### Bug Fixes
+
+* triggering release ([42048c2](http://bitbucket.org/adaptavistlabs/module-secret-generator/commits/42048c28040bbdd60ac065f2185da0afa68e6464))
+
 ## [1.5.3](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.5.2...v1.5.3) (2023-06-06)
 
 
