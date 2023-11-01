@@ -6,4 +6,6 @@ require (
 	github.com/stretchr/testify v1.8.1
 )
 
+replace github.com/klauspost/compress v1.15.11 => github.com/klauspost/compress v1.15.10
+
 go 1.13
