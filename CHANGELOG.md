@@ -1,3 +1,10 @@
+# [1.6.0](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.5.4...v1.6.0) (2023-11-02)
+
+
+### Features
+
+* **node:** update lambda runtime to node16 ([32b03c6](http://bitbucket.org/adaptavistlabs/module-secret-generator/commits/32b03c6cab4a7967c24114c2ad07af0a7cae5a83))
+
 ## [1.5.4](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.5.3...v1.5.4) (2023-06-07)
 
 
