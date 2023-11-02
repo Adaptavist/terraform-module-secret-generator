@@ -16,7 +16,7 @@ module "aws-lambda" {
   description     = "A lambda which generates a random string and sets it into a supplied SSM path"
   lambda_code_dir = "${path.module}/typescript/dist"
   handler         = "app.handler"
-  runtime         = "nodejs14.x"
+  runtime         = "nodejs16.x"
   timeout         = "300"
 
   namespace  = var.namespace
