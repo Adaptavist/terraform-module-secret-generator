@@ -1,7 +1,7 @@
 definitions:
   tests: &test
     name: Tests
-    image: adaptavist/all-tools:openjdk11-latest-0.13.5
+    image: node:22-slim
     script:
       - (apk add --update go)
       - (cd typescript && npm ci && npm run-script build)
@@ -9,14 +9,14 @@ definitions:
 
   check: &check
     name: Check HCL
-    image: adaptavist/all-tools:openjdk11-latest-0.13.5
+    image: hashicorp/terraform
     script:
       - (echo ${PIPELINE_GIT_PRIVATE_KEY} | base64 -d >> ~/.ssh/id_rsa) && chmod 0600 ~/.ssh/id_rsa
       - terraform fmt -check -recursive -diff
 
   compliance: &compliance
     name: TF Compliance
-    image: adaptavist/all-tools:openjdk11-latest-0.13.5
+    image: hashicorp/terraform
     script:
       - >
        (cd test/fixture
@@ -43,7 +43,7 @@ definitions:
 
   transpile: &transpile
     name: Transpile TS
-    image: node:13
+    image: node:22-slim
     caches:
       - node
     script:
@@ -54,7 +54,7 @@ definitions:
 
   release: &release
     name: Release
-    image: node:13
+    image: node:22-slim
     caches:
       - node
     script:
