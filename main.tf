@@ -10,7 +10,7 @@ data "aws_region" "current" {}
 
 module "aws-lambda" {
   source  = "Adaptavist/aws-lambda/module"
-  version = "1.11.0"
+  version = "1.35.8"
 
   function_name   = var.lambda_name
   description     = "A lambda which generates a random string and sets it into a supplied SSM path"
