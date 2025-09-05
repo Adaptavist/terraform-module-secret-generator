@@ -4,15 +4,17 @@
 import { Context } from 'aws-lambda';
 import { IncomingMessage } from 'http';
 
+type Status = 'SUCCESS' | 'FAILED';
+
 const SUCCESS = 'SUCCESS';
 const FAILED = 'FAILED';
 
-const send = async (event: any, context: Context, responseStatus: any, responseData: any, error?: any, physicalResourceId?: any, noEcho?: boolean): Promise<void> => {
+const send = async (event: any, context: Context, responseStatus: Status, responseData: any, physicalResourceId: string, error?: any, noEcho?: boolean): Promise<void> => {
     return new Promise((resolve, reject) => {
         const responseBody = JSON.stringify({
             Status: responseStatus,
             Reason: `See the details in CloudWatch Log Group ${context.logGroupName} Log Stream ${context.logStreamName}; response ${JSON.stringify(responseData)}`,
-            PhysicalResourceId: physicalResourceId || context.logStreamName,
+            PhysicalResourceId: physicalResourceId,
             StackId: event.StackId,
             RequestId: event.RequestId,
             LogicalResourceId: event.LogicalResourceId,
