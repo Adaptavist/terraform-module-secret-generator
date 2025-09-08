@@ -1,9 +1,9 @@
 terraform {
   backend "s3" {
-    bucket         = "product-sandbox-terraform-state-management"
-    dynamodb_table = "product-sandbox-terraform-state-management"
-    region         = "us-east-1"
-    encrypt        = "true"
+    bucket       = "product-sandbox-terraform-state-management"
+    use_lockfile = true
+    region       = "us-east-1"
+    encrypt      = "true"
   }
 }
 
