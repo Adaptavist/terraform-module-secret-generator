@@ -17,9 +17,9 @@ definitions:
         oidc: true
         script:
             - *oidc-dev
-            - apt-get update && apt-get install -y golang-go
+            - apt-get update && apt-get install -y golang-go ca-certificates
             - cd typescript && npm ci && npm run-script build
-            - cd test && go test
+            - cd ../test && go test
 
     check: &check
         name: Check HCL
@@ -60,7 +60,9 @@ definitions:
         caches:
             - node
         script:
+            - apt-get update && apt-get install -y git
             - cd typescript && npm ci && npm run-script build
+            - cd ..
             - git add typescript/dist/*
             - git commit --allow-empty -m '[skip ci] transpiled TS to JS'
             - git push
