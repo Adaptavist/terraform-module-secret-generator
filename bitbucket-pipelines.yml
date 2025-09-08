@@ -17,7 +17,7 @@ definitions:
         oidc: true
         script:
             - *oidc-dev
-            - apt-get update && apt-get install -y go
+            - apt-get update && apt-get install -y golang-go
             - cd typescript && npm ci && npm run-script build
             - cd test && go test
 
