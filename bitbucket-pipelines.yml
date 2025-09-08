@@ -12,14 +12,22 @@ definitions:
             export AWS_DEFAULT_REGION=us-east-1
 
     tests: &test
-        name: Tests
+        name: Node Build
         image: node:22-slim
         oidc: true
         script:
             - *oidc-dev
-            - apt-get update && apt-get install -y golang-go ca-certificates
-            - cd typescript && npm ci && npm run-script build
-            - cd ../test && go test
+            - cd typescript
+            - npm ci && npm run-script build
+
+    go-tests: &go-test
+        name: Go Tests
+        image: hashicorp/terraform
+        oidc: true
+        script:
+            - *oidc-dev
+            - apt-get update && apt-get install -y golang-go
+            - cd test && go test
 
     check: &check
         name: Check HCL
@@ -82,6 +90,7 @@ pipelines:
         -   step: *test-plan
         #-   step: *compliance
         -   step: *test
+        -   step: *go-test
         -   step: *transpile
 
     branches:
@@ -90,4 +99,5 @@ pipelines:
             -   step: *test-plan
             #-   step: *compliance
             -   step: *test
+            -   step: *go-test
             -   step: *release
