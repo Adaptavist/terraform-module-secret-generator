@@ -1,6 +1,6 @@
 terraform {
   backend "s3" {
-    bucket       = "product-sandbox-terraform-state-management"
+    bucket       = "srcloud-module-platform-sandbox-terraform-state-management"
     use_lockfile = true
     region       = "us-east-1"
     encrypt      = "true"

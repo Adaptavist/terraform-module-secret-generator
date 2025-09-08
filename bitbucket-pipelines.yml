@@ -1,11 +1,25 @@
 definitions:
+    scripts:
+        # OIDC setup for specific AWS account
+        - &oidc-dev |
+            unset AWS_ACCESS_KEY_ID
+            unset AWS_SECRET_ACCESS_KEY
+            export AWS_ACCOUNT_ID=270148732964
+            export AWS_ROLE_ARN=arn:aws:iam::${AWS_ACCOUNT_ID}:role/BitBucketOIDCAccessRole_${BITBUCKET_WORKSPACE}
+            export AWS_WEB_IDENTITY_TOKEN_FILE=$(pwd)/web-identity-token
+            echo $BITBUCKET_STEP_OIDC_TOKEN > $(pwd)/web-identity-token
+            export AWS_ROLE_SESSION_NAME=$BITBUCKET_REPO_SLUG
+            export AWS_DEFAULT_REGION=us-east-1
+
     tests: &test
         name: Tests
         image: node:22-slim
+        oidc: true
         script:
-            - (apk add --update go)
-            - (cd typescript && npm ci && npm run-script build)
-            - (cd test && AWS_ACCESS_KEY_ID="${TF_TEST_AWS_ACCESS_KEY_ID}" AWS_SECRET_ACCESS_KEY="${TF_TEST_AWS_SECRET_ACCESS_KEY}" go test)
+            - *oidc-dev
+            - apk add --update go
+            - cd typescript && npm ci && npm run-script build
+            - cd test && go test
 
     check: &check
         name: Check HCL
@@ -17,29 +31,18 @@ definitions:
     compliance: &compliance
         name: TF Compliance
         image: hashicorp/terraform
+        oidc: true
         script:
-            - >
-                (cd test/fixture
-                &&
-                AWS_ACCESS_KEY_ID="${TF_TEST_AWS_ACCESS_KEY_ID}"
-                AWS_SECRET_ACCESS_KEY="${TF_TEST_AWS_SECRET_ACCESS_KEY}"
-                terraform init -backend-config="key=modules/module-secret-generator/tests/fixures/default/compliance-test.tfstate")
-            - >
-                (cd test/fixture
-                &&
-                AWS_ACCESS_KEY_ID="${TF_TEST_AWS_ACCESS_KEY_ID}"
-                AWS_SECRET_ACCESS_KEY="${TF_TEST_AWS_SECRET_ACCESS_KEY}"
-                terraform plan -out=plan.out
-                -var aws_region=us-west-2
-                -var "positive_test_ssm_parameter_name=/some/fake/path1"
-                -var "positive_test_existing_ssm_parameter_name=/some/fake/path2"
-                -var "positive_test_existing_replace_ssm_parameter_name=/some/fake/path3")
-            - >
-                (cd test/fixture
-                &&
-                AWS_ACCESS_KEY_ID="${TF_TEST_AWS_ACCESS_KEY_ID}"
-                AWS_SECRET_ACCESS_KEY="${TF_TEST_AWS_SECRET_ACCESS_KEY}"
-                terraform-compliance -f git:https://github.com/Adaptavist/terraform-compliance.git -p plan.out)
+            - *oidc-dev
+            - cd test/fixture
+            - terraform init -backend-config="key=modules/module-secret-generator/tests/fixures/default/compliance-test.tfstate"
+            - |
+               terraform plan -out=plan.out \
+                    -var aws_region=us-west-2 \
+                    -var "positive_test_ssm_parameter_name=/some/fake/path1" \
+                    -var "positive_test_existing_ssm_parameter_name=/some/fake/path2" \
+                    -var "positive_test_existing_replace_ssm_parameter_name=/some/fake/path3"
+            - terraform-compliance -f git:https://github.com/Adaptavist/terraform-compliance.git -p plan.out
 
     transpile: &transpile
         name: Transpile TS
@@ -47,7 +50,7 @@ definitions:
         caches:
             - node
         script:
-            - (cd typescript && npm ci && npm run-script build)
+            - cd typescript && npm ci && npm run-script build
             - git add typescript/dist/*
             - git commit --allow-empty -m '[skip ci] transpiled TS to JS'
             - git push
