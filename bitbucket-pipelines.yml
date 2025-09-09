@@ -26,7 +26,6 @@ definitions:
         oidc: true
         script:
             - *oidc-dev
-            - apt-get update && apt-get install -y golang-go
             - cd test && go test
 
     check: &check
