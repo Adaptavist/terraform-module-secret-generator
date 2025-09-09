@@ -29,11 +29,11 @@ export const handler = async (
     const path = event.ResourceProperties.path;
     const respectInitialValue = toBoolean(event.ResourceProperties.respectInitialValue);
     const includeSpaces = toBoolean(event.ResourceProperties.includeSpaces);
-    const secretLength = event.ResourceProperties.secretLength || 40;
+    const secretLength = toNumber(event.ResourceProperties.secretLength);
 
     console.log(`path: ${path}, respectInitialValue: ${respectInitialValue}, includeSpaces: ${includeSpaces}, secretLength: ${secretLength}`);
 
-    const arn = `arn:aws:ssm:${process.env.AWS_REGION}:${accountId}:parameter/${path}`;
+    const arn = `arn:aws:ssm:${process.env.AWS_REGION}:${accountId}:parameter${path.startsWith('/') ? path : '/' + path}`;
 
     try {
         if (event.RequestType === 'Create') {
@@ -64,8 +64,8 @@ export const handler = async (
 
         if (event.RequestType === 'Update') {
             const oldDetails = event.OldResourceProperties;
-            const changeLength = oldDetails.secretLength !== secretLength;
-            const changeSpaces = oldDetails.includeSpaces !== includeSpaces;
+            const changeLength = toNumber(oldDetails.secretLength) !== secretLength;
+            const changeSpaces = toBoolean(oldDetails.includeSpaces) !== includeSpaces;
             const changePath = oldDetails.path !== path;
 
             if (changePath) {
@@ -196,3 +196,20 @@ const handleSuccess = async (event: any, context: Context, data: object, physica
  * @param input
  */
 const toBoolean = (input: any) => input === 'true' || input === '1' || input === true || input === 1;
+
+const MIN_LENGTH = 1;
+const MAX_LENGTH = 4000;
+const DEFAULT_LENGTH = 40;
+export const toNumber = (input: any) => {
+    if (Number.isInteger(input)) {
+        return Math.max(MIN_LENGTH, Math.min(input, MAX_LENGTH));
+    }
+    if (typeof input !== 'string') {
+        return DEFAULT_LENGTH;
+    }
+    const parsed = Number.parseInt(input, 10);
+    if (Number.isNaN(parsed)) {
+        return DEFAULT_LENGTH;
+    }
+    return Math.max(MIN_LENGTH, Math.min(parsed, MAX_LENGTH));
+};

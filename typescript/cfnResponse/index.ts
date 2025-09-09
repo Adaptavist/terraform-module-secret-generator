@@ -25,16 +25,15 @@ const send = async (event: any, context: Context, responseStatus: Status, respon
         console.log('Response body:\n', responseBody);
 
         const https = require('https');
-        const url = require('url');
 
-        const parsedUrl = url.parse(event.ResponseURL);
+        const parsedUrl = URL.parse(event.ResponseURL)!;
         const options = {
             hostname: parsedUrl.hostname,
             port: 443,
-            path: parsedUrl.path,
+            path: parsedUrl.pathname,
             method: 'PUT',
             headers: {
-                'content-type': '',
+                'content-type': 'application/json; charset=utf-8',
                 'content-length': responseBody.length
             }
         };
