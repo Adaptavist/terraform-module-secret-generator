@@ -1,12 +1,17 @@
-import { AWSError, SSM } from 'aws-sdk';
 import { Context } from 'aws-lambda';
-import { GetRandomPasswordResponse } from 'aws-sdk/clients/secretsmanager';
-import { GetParameterResult, PutParameterResult } from 'aws-sdk/clients/ssm';
 import { FAILED, send, SUCCESS } from './cfnResponse';
-import AWS = require('aws-sdk');
+import {
+    DeleteParameterCommand, GetParameterCommand, GetParameterCommandInput, GetParameterCommandOutput, ParameterNotFound,
+    PutParameterCommand,
+    PutParameterCommandInput,
+    PutParameterCommandOutput,
+    SSMClient
+} from '@aws-sdk/client-ssm';
+import { GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts';
+import { GetRandomPasswordCommand, SecretsManagerClient } from '@aws-sdk/client-secrets-manager';
 
-const ssmClient = new AWS.SSM();
-const sts = new AWS.STS();
+const ssmClient = new SSMClient({});
+const sts = new STSClient({});
 
 export const handler = async (
     event: any,
@@ -18,7 +23,7 @@ export const handler = async (
         return handleError(event, context, { message: 'No path was specified for the SSM parameter the secret will be stored in. Cannot continue.' }, 'no-path');
     }
 
-    const identity = await sts.getCallerIdentity().promise();
+    const identity = await sts.send(new GetCallerIdentityCommand({}));
     const accountId = identity.Account;
 
     const path = event.ResourceProperties.path;
@@ -114,66 +119,65 @@ const createSetNewSecret = async (includeSpaces: boolean, secretLength: number, 
 };
 
 const getRandomSecret = async (includeSpaces: boolean, secretLength: number): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        new AWS.SecretsManager()
-            .getRandomPassword({
-                IncludeSpace: includeSpaces,
-                PasswordLength: secretLength,
-                RequireEachIncludedType: true,
-                ExcludePunctuation: true
-            })
-            .send((err: AWSError, data: GetRandomPasswordResponse) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(data.RandomPassword!);
-                }
-            });
+    const client = new SecretsManagerClient({});
+
+    return client.send(new GetRandomPasswordCommand({
+        IncludeSpace: includeSpaces,
+        PasswordLength: secretLength,
+        RequireEachIncludedType: true,
+        ExcludePunctuation: true
+    })).then(resp => {
+        if (resp.RandomPassword) {
+            return resp.RandomPassword;
+        }
+        throw new Error('No password returned');
     });
 };
 
 const setSecretValue = async (
     path: string,
-    client: SSM,
+    client: SSMClient,
     secret: string
-): Promise<PutParameterResult> => {
-    const params = {
+): Promise<PutParameterCommandOutput> => {
+    const params: PutParameterCommandInput = {
         Name: path,
         Value: secret,
         Overwrite: true,
         Type: 'SecureString'
     };
 
-    return client.putParameter(params).promise();
+    return client.send(new PutParameterCommand(params));
 };
 
 const deleteSecret = async (
     path: string,
-    client: SSM
+    client: SSMClient
 ): Promise<boolean> => {
     const params = {
         Name: path
     };
-    return client.deleteParameter(params).promise()
+    return client.send(new DeleteParameterCommand(params))
         .then(() => true)
         .catch(error => {
-            if (error.code === 'ParameterNotFound') {
+            if (error instanceof ParameterNotFound) {
                 return true;
             }
             throw error;
         });
 };
 
-const getParameter = async (path: string, client: SSM): Promise<GetParameterResult> => {
-    const params: AWS.SSM.GetParameterRequest = {
+const getParameter = async (path: string, client: SSMClient): Promise<GetParameterCommandOutput> => {
+    const params: GetParameterCommandInput = {
         Name: path,
         WithDecryption: true
     };
 
-    return client.getParameter(params).promise()
+    return client.send(new GetParameterCommand(params))
         .catch(error => {
-            if (error.code === 'ParameterNotFound') {
-                return {};
+            if (error instanceof ParameterNotFound) {
+                return {
+                    $metadata: {}
+                };
             }
             throw error;
         });
