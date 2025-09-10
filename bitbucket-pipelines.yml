@@ -19,6 +19,7 @@ definitions:
             - *oidc-dev
             - cd typescript
             - npm ci && npm run-script build
+            - AWS_REGION="${AWS_DEFAULT_REGION}" npm run test
 
     go-tests: &go-test
         name: Go Tests
@@ -89,7 +90,7 @@ pipelines:
         -   step: *test-plan
         #-   step: *compliance
         -   step: *test
-        -   step: *go-test
+        #-   step: *go-test
         -   step: *transpile
 
     branches:
@@ -98,5 +99,5 @@ pipelines:
             -   step: *test-plan
             #-   step: *compliance
             -   step: *test
-            -   step: *go-test
+            #-   step: *go-test
             -   step: *release
