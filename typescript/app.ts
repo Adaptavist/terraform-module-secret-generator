@@ -20,7 +20,7 @@ export const handler = async (
     console.log(`Received : ${event.RequestType}`);
 
     if (!event || !event.ResourceProperties.path) {
-        return handleError(event, context, { message: 'No path was specified for the SSM parameter the secret will be stored in. Cannot continue.' }, 'no-path');
+        return handleError(event, new Error('No path was specified for the SSM parameter the secret will be stored in.'), 'no-path');
     }
 
     const identity = await sts.send(new GetCallerIdentityCommand({}));
@@ -41,24 +41,25 @@ export const handler = async (
                 const resp = await getParameter(path, ssmClient);
                 if (resp.Parameter !== undefined) {
                     // param already exists, dont overwrite
-                    return handleSuccess(event, context, {}, arn);
+                    return handleSuccess(event, { action: 'none', description: 'Param exists and respectInitialValue set' }, arn);
                 }
             }
-            return createSetNewSecret(includeSpaces, secretLength, path, event, context, arn);
+            return createSetNewSecret(includeSpaces, secretLength, path, event, arn);
         }
 
         if (event.RequestType === 'Delete') {
             const resp = await getParameter(path, ssmClient);
             if (resp.Parameter === undefined) {
                 // nothing to delete
-                return handleSuccess(event, context, {}, arn);
+                return handleSuccess(event, { action: 'none', description: "Param doesn't exist" }, arn);
             }
 
             try {
                 const result = await deleteSecret(path, ssmClient);
-                return handleSuccess(event, context, { result }, arn);
+                return handleSuccess(event, { action: 'delete', success: result }, arn);
             } catch (error) {
-                return handleError(event, context, { error }, arn);
+                console.error(error);
+                return handleError(event, error instanceof Error ? error : new Error('Failed to delete parameter'), arn);
             }
         }
 
@@ -75,46 +76,46 @@ export const handler = async (
                     // set a brand new secret if we fail to get the old value OR we are asked to change the length/spaces config of the secret
                     const oldParamResp = await getParameter(oldDetails.path, ssmClient);
                     if (changeLength || changeSpaces || oldParamResp.Parameter === undefined) {
-                        return createSetNewSecret(includeSpaces, secretLength, path, event, context, arn);
+                        return createSetNewSecret(includeSpaces, secretLength, path, event, arn);
                     }
                     const result = await setSecretValue(path, ssmClient, oldParamResp.Parameter.Value!);
-                    return handleSuccess(event, context, { result }, arn);
+                    return handleSuccess(event, { action: 'put', version: result.Version }, arn);
                 } else {
                     if (!respectInitialValue) {
                         // update new already existing param
                         // set a brand new secret if we fail to get the old value OR we are asked to change the length/spaces config of the secret
                         const oldParamResp = await getParameter(oldDetails.path, ssmClient);
                         if (changeLength || changeSpaces || oldParamResp.Parameter === undefined) {
-                            return createSetNewSecret(includeSpaces, secretLength, path, event, context, arn);
+                            return createSetNewSecret(includeSpaces, secretLength, path, event, arn);
                         }
                         const result = await setSecretValue(path, ssmClient, oldParamResp.Parameter.Value!);
-                        return handleSuccess(event, context, { result }, arn);
+                        return handleSuccess(event, { action: 'put', version: result.Version }, arn);
                     }
                 }
             } else {
                 // the SSM param path is the same
                 // only update the value if the length/space config of the secret have changed AND we are not asked to respect the initial value
                 if (!respectInitialValue && (changeLength || changeSpaces)) {
-                    return createSetNewSecret(includeSpaces, secretLength, path, event, context, arn);
+                    return createSetNewSecret(includeSpaces, secretLength, path, event, arn);
                 }
             }
         }
 
         // do nothing
-        return handleSuccess(event, context, {}, arn);
+        return handleSuccess(event, { action: 'none', description: 'No matching action' }, arn);
     } catch (error) {
         console.log(error);
-        return handleError(event, context, { error }, arn);
+        return handleError(event, error instanceof Error ? error : new Error('Failed to process Cloudformation event'), arn);
     }
 };
 
-const createSetNewSecret = async (includeSpaces: boolean, secretLength: number, path: string, event: any, context: Context, arn: string) => {
+const createSetNewSecret = async (includeSpaces: boolean, secretLength: number, path: string, event: any, arn: string) => {
     const secret = await getRandomSecret(includeSpaces, secretLength);
     try {
         const result = await setSecretValue(path, ssmClient, secret);
-        return handleSuccess(event, context, { result }, arn);
+        return handleSuccess(event, { version: result.Version, action: 'put' }, arn);
     } catch (error) {
-        return handleError(event, context, { error }, arn);
+        return handleError(event, error instanceof Error ? error : new Error('Set parameter failed'), arn);
     }
 };
 
@@ -183,12 +184,12 @@ const getParameter = async (path: string, client: SSMClient): Promise<GetParamet
         });
 };
 
-const handleError = async (event: any, context: Context, cause: object, physicalResourceId: string) => {
-    return send(event, context, FAILED, cause, physicalResourceId);
+const handleError = async (event: any, cause: Error, physicalResourceId: string) => {
+    return send(event, FAILED, {}, physicalResourceId, cause.message);
 };
 
-const handleSuccess = async (event: any, context: Context, data: object, physicalResourceId: string) => {
-    return send(event, context, SUCCESS, data, physicalResourceId);
+const handleSuccess = async (event: any, data: object, physicalResourceId: string) => {
+    return send(event, SUCCESS, data, physicalResourceId);
 };
 
 /**

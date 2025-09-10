@@ -138,7 +138,7 @@ describe('Create resource', () => {
         };
         await notExists(NEW_PARAM);
         const scope = nock('https://presigned.s3.aws.com')
-            .put('/create-secret', /Status": ?"SUCCESS/)
+            .put('/create-secret', body => body.Status === 'SUCCESS')
             .reply(200);
 
         // when:
@@ -164,7 +164,7 @@ describe('Create resource', () => {
         };
         await notExists(SHORT_PARAM);
         const scope = nock('https://presigned.s3.aws.com')
-            .put('/create-secret', /Status": ?"SUCCESS/)
+            .put('/create-secret', body => body.Status === 'SUCCESS')
             .reply(200);
 
         // when:
@@ -189,7 +189,7 @@ describe('Create resource', () => {
         };
         const created = await putParam(OVERWRITE_PARAM);
         const scope = nock('https://presigned.s3.aws.com')
-            .put('/create-secret', /Status": ?"SUCCESS/)
+            .put('/create-secret', body => body.Status === 'SUCCESS')
             .reply(200);
 
         // when:
@@ -214,7 +214,7 @@ describe('Create resource', () => {
         };
         const created = await putParam(RESPECT_PARAM);
         const scope = nock('https://presigned.s3.aws.com')
-            .put('/create-secret', /Status": ?"SUCCESS/)
+            .put('/create-secret', body => body.Status === 'SUCCESS')
             .reply(200);
 
         // when:
@@ -261,7 +261,7 @@ describe('Update resource', () => {
         await notExists(TARGET_PARAM);
         await putParam(ORIGIN_PARAM);
         const scope = nock('https://presigned.s3.aws.com')
-            .put('/update-secret', /Status": ?"SUCCESS/)
+            .put('/update-secret', body => body.Status === 'SUCCESS' && body.PhysicalResourceId.endsWith(TARGET_PARAM))
             .reply(200);
 
         // when:
@@ -291,7 +291,7 @@ describe('Update resource', () => {
         await putParam(TARGET_PARAM_4, 'existing value');
         await putParam(ORIGIN_PARAM_4, 'original secret');
         const scope = nock('https://presigned.s3.aws.com')
-            .put('/update-secret', /Status": ?"SUCCESS/)
+            .put('/update-secret', body => body.Status === 'SUCCESS' && body.PhysicalResourceId.endsWith(TARGET_PARAM_4))
             .reply(200);
 
         // when:
@@ -322,7 +322,7 @@ describe('Update resource', () => {
         await putParam(TARGET_PARAM_5, 'existing value');
         await putParam(ORIGIN_PARAM_5, 'original secret');
         const scope = nock('https://presigned.s3.aws.com')
-            .put('/update-secret', /Status": ?"SUCCESS/)
+            .put('/update-secret', body => body.Status === 'SUCCESS' && body.PhysicalResourceId.endsWith(TARGET_PARAM_5))
             .reply(200);
 
         // when:
@@ -354,7 +354,7 @@ describe('Update resource', () => {
         await notExists(ORIGIN_PARAM_2);
 
         const scope = nock('https://presigned.s3.aws.com')
-            .put('/update-secret', /Status": ?"SUCCESS/)
+            .put('/update-secret', body => body.Status === 'SUCCESS' && body.PhysicalResourceId.endsWith(TARGET_PARAM_2))
             .reply(200);
 
         // when:
@@ -385,7 +385,7 @@ describe('Update resource', () => {
         await notExists(TARGET_PARAM_3);
 
         const scope = nock('https://presigned.s3.aws.com')
-            .put('/update-secret', /Status": ?"SUCCESS/) // TODO PhysicalResourceId???
+            .put('/update-secret', body => body.Status === 'SUCCESS' && body.PhysicalResourceId.endsWith(TARGET_PARAM_3))
             .reply(200);
 
         // when:
@@ -415,7 +415,7 @@ describe('Update resource', () => {
         };
         await putParam(UPDATE_PARAM);
         const scope = nock('https://presigned.s3.aws.com')
-            .put('/update-secret', /Status": ?"SUCCESS/)
+            .put('/update-secret', body => body.Status === 'SUCCESS' && body.PhysicalResourceId.endsWith(UPDATE_PARAM))
             .reply(200);
 
         // when:
@@ -444,7 +444,7 @@ describe('Update resource', () => {
         };
         await putParam(UPDATE_PARAM_2);
         const scope = nock('https://presigned.s3.aws.com')
-            .put('/update-secret', /Status": ?"SUCCESS/)
+            .put('/update-secret', body => body.Status === 'SUCCESS' && body.PhysicalResourceId.endsWith(UPDATE_PARAM_2))
             .reply(200);
 
         // when:
@@ -472,7 +472,7 @@ describe('Update resource', () => {
         };
         await putParam(UPDATE_PARAM_3);
         const scope = nock('https://presigned.s3.aws.com')
-            .put('/update-secret', /Status": ?"SUCCESS/)
+            .put('/update-secret', body => body.Status === 'SUCCESS' && body.PhysicalResourceId.endsWith(UPDATE_PARAM_3))
             .reply(200);
 
         // when:
@@ -500,7 +500,7 @@ describe('Update resource', () => {
         };
         await putParam(UPDATE_PARAM_4);
         const scope = nock('https://presigned.s3.aws.com')
-            .put('/update-secret', /Status": ?"SUCCESS/)
+            .put('/update-secret', body => body.Status === 'SUCCESS' && body.PhysicalResourceId.endsWith(UPDATE_PARAM_4))
             .reply(200);
 
         // when:
@@ -526,7 +526,7 @@ describe('Delete resource', () => {
         };
         await notExists(MISSING_PARAM);
         const scope = nock('https://presigned.s3.aws.com')
-            .put('/delete-secret', /Status": ?"SUCCESS/)
+            .put('/delete-secret', body => body.Status === 'SUCCESS' && body.PhysicalResourceId.endsWith(MISSING_PARAM))
             .reply(200);
 
         // when:
@@ -548,7 +548,7 @@ describe('Delete resource', () => {
         };
         await putParam(TO_DELETE);
         const scope = nock('https://presigned.s3.aws.com')
-            .put('/delete-secret', /Status": ?"SUCCESS/)
+            .put('/delete-secret', body => body.Status === 'SUCCESS' && body.PhysicalResourceId.endsWith(TO_DELETE))
             .reply(200);
 
         // when:

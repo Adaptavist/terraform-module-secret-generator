@@ -1,7 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 
-import { Context } from 'aws-lambda';
 import { IncomingMessage } from 'http';
 
 type Status = 'SUCCESS' | 'FAILED';
@@ -9,16 +8,16 @@ type Status = 'SUCCESS' | 'FAILED';
 const SUCCESS = 'SUCCESS';
 const FAILED = 'FAILED';
 
-const send = async (event: any, context: Context, responseStatus: Status, responseData: any, physicalResourceId: string, error?: any, noEcho?: boolean): Promise<void> => {
+const send = async (event: any, responseStatus: Status, responseData: any, physicalResourceId: string, reason?: string): Promise<void> => {
     return new Promise((resolve, reject) => {
         const responseBody = JSON.stringify({
             Status: responseStatus,
-            Reason: `See the details in CloudWatch Log Group ${context.logGroupName} Log Stream ${context.logStreamName}; response ${JSON.stringify(responseData)}`,
+            Reason: reason,
             PhysicalResourceId: physicalResourceId,
             StackId: event.StackId,
             RequestId: event.RequestId,
             LogicalResourceId: event.LogicalResourceId,
-            NoEcho: noEcho || false,
+            NoEcho: false,
             Data: responseData
         });
 
