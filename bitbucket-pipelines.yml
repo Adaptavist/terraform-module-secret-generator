@@ -51,6 +51,12 @@ definitions:
                     -var "positive_test_existing_ssm_parameter_name=/some/fake/path2" \
                     -var "positive_test_existing_replace_ssm_parameter_name=/some/fake/path3"
             - terraform show -json plan.out > plan.out.json # https://github.com/terraform-compliance/cli/issues/632
+            - terraform apply plan.out
+            - terraform destroy \
+                -var aws_region=us-west-2 \
+                -var "positive_test_ssm_parameter_name=/some/fake/path1" \
+                -var "positive_test_existing_ssm_parameter_name=/some/fake/path2" \
+                -var "positive_test_existing_replace_ssm_parameter_name=/some/fake/path3"
         artifacts:
             - test/fixture/plan.out
             - test/fixture/plan.out.json
