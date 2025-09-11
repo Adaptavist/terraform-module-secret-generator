@@ -12,6 +12,7 @@ import { GetRandomPasswordCommand, SecretsManagerClient } from '@aws-sdk/client-
 
 const ssmClient = new SSMClient({});
 const sts = new STSClient({});
+const secretsManager = new SecretsManagerClient({});
 
 export const handler = async (
     event: any,
@@ -38,7 +39,7 @@ export const handler = async (
     try {
         if (event.RequestType === 'Create') {
             if (respectInitialValue) {
-                const resp = await getParameter(path, ssmClient);
+                const resp = await getParameter(path);
                 if (resp.Parameter !== undefined) {
                     // param already exists, dont overwrite
                     return handleSuccess(event, { action: 'none', description: 'Param exists and respectInitialValue set' }, arn);
@@ -48,14 +49,14 @@ export const handler = async (
         }
 
         if (event.RequestType === 'Delete') {
-            const resp = await getParameter(path, ssmClient);
+            const resp = await getParameter(path);
             if (resp.Parameter === undefined) {
                 // nothing to delete
                 return handleSuccess(event, { action: 'none', description: "Param doesn't exist" }, arn);
             }
 
             try {
-                const result = await deleteSecret(path, ssmClient);
+                const result = await deleteSecret(path);
                 return handleSuccess(event, { action: 'delete', success: result }, arn);
             } catch (error) {
                 console.error(error);
@@ -70,25 +71,25 @@ export const handler = async (
             const changePath = oldDetails.path !== path;
 
             if (changePath) {
-                const newParamResp = await getParameter(path, ssmClient);
+                const newParamResp = await getParameter(path);
                 if (newParamResp.Parameter === undefined) {
                     // create new param
                     // set a brand new secret if we fail to get the old value OR we are asked to change the length/spaces config of the secret
-                    const oldParamResp = await getParameter(oldDetails.path, ssmClient);
+                    const oldParamResp = await getParameter(oldDetails.path);
                     if (changeLength || changeSpaces || oldParamResp.Parameter === undefined) {
                         return createSetNewSecret(includeSpaces, secretLength, path, event, arn);
                     }
-                    const result = await setSecretValue(path, ssmClient, oldParamResp.Parameter.Value!);
+                    const result = await setSecretValue(path, oldParamResp.Parameter.Value!);
                     return handleSuccess(event, { action: 'put', version: result.Version }, arn);
                 } else {
                     if (!respectInitialValue) {
                         // update new already existing param
                         // set a brand new secret if we fail to get the old value OR we are asked to change the length/spaces config of the secret
-                        const oldParamResp = await getParameter(oldDetails.path, ssmClient);
+                        const oldParamResp = await getParameter(oldDetails.path);
                         if (changeLength || changeSpaces || oldParamResp.Parameter === undefined) {
                             return createSetNewSecret(includeSpaces, secretLength, path, event, arn);
                         }
-                        const result = await setSecretValue(path, ssmClient, oldParamResp.Parameter.Value!);
+                        const result = await setSecretValue(path, oldParamResp.Parameter.Value!);
                         return handleSuccess(event, { action: 'put', version: result.Version }, arn);
                     }
                 }
@@ -112,7 +113,7 @@ export const handler = async (
 const createSetNewSecret = async (includeSpaces: boolean, secretLength: number, path: string, event: any, arn: string) => {
     const secret = await getRandomSecret(includeSpaces, secretLength);
     try {
-        const result = await setSecretValue(path, ssmClient, secret);
+        const result = await setSecretValue(path, secret);
         return handleSuccess(event, { version: result.Version, action: 'put' }, arn);
     } catch (error) {
         return handleError(event, error instanceof Error ? error : new Error('Set parameter failed'), arn);
@@ -120,9 +121,7 @@ const createSetNewSecret = async (includeSpaces: boolean, secretLength: number, 
 };
 
 const getRandomSecret = async (includeSpaces: boolean, secretLength: number): Promise<string> => {
-    const client = new SecretsManagerClient({});
-
-    return client.send(new GetRandomPasswordCommand({
+    return secretsManager.send(new GetRandomPasswordCommand({
         IncludeSpace: includeSpaces,
         PasswordLength: secretLength,
         RequireEachIncludedType: true,
@@ -137,7 +136,6 @@ const getRandomSecret = async (includeSpaces: boolean, secretLength: number): Pr
 
 const setSecretValue = async (
     path: string,
-    client: SSMClient,
     secret: string
 ): Promise<PutParameterCommandOutput> => {
     const params: PutParameterCommandInput = {
@@ -147,17 +145,16 @@ const setSecretValue = async (
         Type: 'SecureString'
     };
 
-    return client.send(new PutParameterCommand(params));
+    return ssmClient.send(new PutParameterCommand(params));
 };
 
 const deleteSecret = async (
-    path: string,
-    client: SSMClient
+    path: string
 ): Promise<boolean> => {
     const params = {
         Name: path
     };
-    return client.send(new DeleteParameterCommand(params))
+    return ssmClient.send(new DeleteParameterCommand(params))
         .then(() => true)
         .catch(error => {
             if (error instanceof ParameterNotFound) {
@@ -167,13 +164,13 @@ const deleteSecret = async (
         });
 };
 
-const getParameter = async (path: string, client: SSMClient): Promise<GetParameterCommandOutput> => {
+const getParameter = async (path: string): Promise<GetParameterCommandOutput> => {
     const params: GetParameterCommandInput = {
         Name: path,
         WithDecryption: true
     };
 
-    return client.send(new GetParameterCommand(params))
+    return ssmClient.send(new GetParameterCommand(params))
         .catch(error => {
             if (error instanceof ParameterNotFound) {
                 return {
