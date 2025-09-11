@@ -22,7 +22,7 @@ module "aws-lambda" {
   namespace  = var.namespace
   stage      = var.stage
   tags       = local.finalTags
-  aws_region = data.aws_region.current.name
+  aws_region = data.aws_region.current.id
 }
 
 resource "aws_iam_role_policy" "lambda_exec_role_policy" {

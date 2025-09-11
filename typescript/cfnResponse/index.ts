@@ -29,7 +29,7 @@ const send = async (event: any, responseStatus: Status, responseData: any, physi
         const options = {
             hostname: parsedUrl.hostname,
             port: 443,
-            path: parsedUrl.pathname,
+            path: parsedUrl.pathname + parsedUrl.search,
             method: 'PUT',
             headers: {
                 'content-type': 'application/json; charset=utf-8',
@@ -38,13 +38,12 @@ const send = async (event: any, responseStatus: Status, responseData: any, physi
         };
 
         const request = https.request(options, function (response: IncomingMessage) {
-            console.log('Status code: ' + response.statusCode);
-            console.log('Status message: ' + response.statusMessage);
+            console.log(`Status: ${response.statusCode} ${response.statusMessage}`);
             resolve();
         });
 
         request.on('error', function (error: Error) {
-            console.log('send(..) failed executing https.request(..): ' + error);
+            console.error('send(..) failed executing https.request(..): ', error);
             reject(error);
         });
 
