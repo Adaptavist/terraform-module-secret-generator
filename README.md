@@ -25,12 +25,6 @@ the Lambda with a delete event.
 
 See the below diagram which outlines the creation of a secret.
 
-From version 1.3.1 the module accepts a list of regions in which the SSM parameteres will be created. If the requirement
-is to have replicate the secret across regions the module should be instantiated higher up in the stack.
-
-In case of multiple regions and one of the regions already has the parameter, and if the `respectInitialValue` is set
-to `true`, the module creation will fail and the existing parameter will be left intact.
-
 ![Image of Pipeline](docs/secret-generation.png)
 
 ## Variables
@@ -41,7 +35,6 @@ to `true`, the module creation will fail and the existing parameter will be left
 | namespace | Namespace used for the Lambda, this is used for tagging and within the Lambda name | `string` | n/a | yes |
 | stage | The stage of the distribution - (dev, staging etc). | `string` | n/a | yes |
 | tags | Tags applied to the distribution, these should follow what is defined [here](https://github.com/Adaptavist/terraform-compliance/blob/master/features/tags.feature). | `map(string)` | n/a | yes |
-| regions | The regions in which SSM parameters with the same value will be created | string[] | credential's region | no |
 
 ## Outputs
 
@@ -54,23 +47,21 @@ to `true`, the module creation will fail and the existing parameter will be left
 The below example use the [aws-secret](https://registry.terraform.io/modules/Adaptavist/aws-secret/module/latest)
 module.
 
-### Example single region
-
 The region is inferred from the AWS credentials.
 
 ```terraform
 module "lambda_secrets_generator" {
   source = "Adaptavist/secret-generator/module"
-  version = "1.3.1"
+  version = "2.0.0"
   namespace = "test"
   lambda_name = "ssm-secret-generator-${random_string.random.result}"
   stage = local.stage
   tags = local.tags
 }
 
-module "single_region_parameter" {
+module "single_parameter" {
   source = "Adaptavist/aws-secret/module"
-  version = "1.1.0"
+  version = "1.3.2"
 
   secret_lambda_function_name = module.lambda_secrets_generator.lambda_name
   secret_ssm_path = var.positive_test_ssm_parameter_name
@@ -82,33 +73,8 @@ module "single_region_parameter" {
 }
 ```
 
-### Example multi region
+## Breaking changes
 
-```terraform
-module "lambda_secrets_generator" {
-  source = "Adaptavist/secret-generator/module"
-  version = "1.3.1"
-  namespace = "test"
-  lambda_name = "ssm-secret-generator-${random_string.random.result}"
-  stage = local.stage
-  tags = local.tags
-}
+Version 1.4.0 introduced multi-region support which was flawed and subsequently removed in version 2.0.0
 
-module "multi_region_param" {
-  source = "Adaptavist/aws-secret/module"
-  version = "1.1.0"
-
-  secret_lambda_function_name = module.lambda_secrets_generator.lambda_name
-  secret_ssm_path = var.positive_test_ssm_parameter_name
-  tags = local.tags
-  stage = local.stage
-  regions = [
-    "us-west-2",
-    "eu-central-1"]
-
-  depends_on = [
-    module.lambda]
-}
-```
-
-
+Additionally version 2.0.0 changed the PhysicalResourceId returned to Cloudformation so its incompatible with version 1.x.x and upgrading the module in-place will cause deletion of SSM parameters.
