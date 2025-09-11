@@ -38,7 +38,7 @@ definitions:
 
     test-plan: &test-plan
         name: TF Test Plan
-        image: eerkunt/terraform-compliance
+        image: hashicorp/terraform
         oidc: true
         script:
             - *oidc-dev
@@ -50,23 +50,16 @@ definitions:
                     -var "positive_test_ssm_parameter_name=/module-secret-generator/test/path1" \
                     -var "positive_test_existing_ssm_parameter_name=/module-secret-generator/test/path2" \
                     -var "positive_test_existing_replace_ssm_parameter_name=/module-secret-generator/test/path3"
-            - terraform show -json plan.out > plan.out.json # https://github.com/terraform-compliance/cli/issues/632
             - terraform apply plan.out
-            - terraform destroy -auto-approve \
-                -var aws_region=us-west-2 \
-                -var "positive_test_ssm_parameter_name=/module-secret-generator/test/path1" \
-                -var "positive_test_existing_ssm_parameter_name=/module-secret-generator/test/path2" \
-                -var "positive_test_existing_replace_ssm_parameter_name=/module-secret-generator/test/path3"
+            - |
+               terraform destroy -auto-approve \
+                    -var aws_region=us-west-2 \
+                    -var "positive_test_ssm_parameter_name=/module-secret-generator/test/path1" \
+                    -var "positive_test_existing_ssm_parameter_name=/module-secret-generator/test/path2" \
+                    -var "positive_test_existing_replace_ssm_parameter_name=/module-secret-generator/test/path3"
         artifacts:
             - test/fixture/plan.out
             - test/fixture/plan.out.json
-
-    compliance: &compliance
-        name: TF Compliance
-        image: eerkunt/terraform-compliance
-        script:
-            - cd test/fixture
-            - terraform-compliance -f git:https://github.com/Adaptavist/terraform-compliance.git -p plan.out.json
 
     transpile: &transpile
         name: Transpile TS
@@ -94,7 +87,6 @@ pipelines:
     default:
         -   step: *check
         -   step: *test-plan
-        #-   step: *compliance
         -   step: *test
         #-   step: *go-test
         -   step: *transpile
@@ -103,7 +95,6 @@ pipelines:
         master:
             -   step: *check
             -   step: *test-plan
-            #-   step: *compliance
             -   step: *test
             #-   step: *go-test
             -   step: *release
