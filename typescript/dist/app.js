@@ -72,6 +72,7 @@ var import_client_sts = require("@aws-sdk/client-sts");
 var import_client_secrets_manager = require("@aws-sdk/client-secrets-manager");
 var ssmClient = new import_client_ssm.SSMClient({});
 var sts = new import_client_sts.STSClient({});
+var secretsManager = new import_client_secrets_manager.SecretsManagerClient({});
 var handler = async (event, context) => {
   console.log(`Received : ${event.RequestType}`);
   if (!event || !event.ResourceProperties.path) {
@@ -88,7 +89,7 @@ var handler = async (event, context) => {
   try {
     if (event.RequestType === "Create") {
       if (respectInitialValue) {
-        const resp = await getParameter(path, ssmClient);
+        const resp = await getParameter(path);
         if (resp.Parameter !== void 0) {
           return handleSuccess(event, { action: "none", description: "Param exists and respectInitialValue set" }, arn);
         }
@@ -96,12 +97,12 @@ var handler = async (event, context) => {
       return createSetNewSecret(includeSpaces, secretLength, path, event, arn);
     }
     if (event.RequestType === "Delete") {
-      const resp = await getParameter(path, ssmClient);
+      const resp = await getParameter(path);
       if (resp.Parameter === void 0) {
         return handleSuccess(event, { action: "none", description: "Param doesn't exist" }, arn);
       }
       try {
-        const result = await deleteSecret(path, ssmClient);
+        const result = await deleteSecret(path);
         return handleSuccess(event, { action: "delete", success: result }, arn);
       } catch (error) {
         console.error(error);
@@ -114,21 +115,21 @@ var handler = async (event, context) => {
       const changeSpaces = toBoolean(oldDetails.includeSpaces) !== includeSpaces;
       const changePath = oldDetails.path !== path;
       if (changePath) {
-        const newParamResp = await getParameter(path, ssmClient);
+        const newParamResp = await getParameter(path);
         if (newParamResp.Parameter === void 0) {
-          const oldParamResp = await getParameter(oldDetails.path, ssmClient);
+          const oldParamResp = await getParameter(oldDetails.path);
           if (changeLength || changeSpaces || oldParamResp.Parameter === void 0) {
             return createSetNewSecret(includeSpaces, secretLength, path, event, arn);
           }
-          const result = await setSecretValue(path, ssmClient, oldParamResp.Parameter.Value);
+          const result = await setSecretValue(path, oldParamResp.Parameter.Value);
           return handleSuccess(event, { action: "put", version: result.Version }, arn);
         } else {
           if (!respectInitialValue) {
-            const oldParamResp = await getParameter(oldDetails.path, ssmClient);
+            const oldParamResp = await getParameter(oldDetails.path);
             if (changeLength || changeSpaces || oldParamResp.Parameter === void 0) {
               return createSetNewSecret(includeSpaces, secretLength, path, event, arn);
             }
-            const result = await setSecretValue(path, ssmClient, oldParamResp.Parameter.Value);
+            const result = await setSecretValue(path, oldParamResp.Parameter.Value);
             return handleSuccess(event, { action: "put", version: result.Version }, arn);
           }
         }
@@ -147,15 +148,14 @@ var handler = async (event, context) => {
 var createSetNewSecret = async (includeSpaces, secretLength, path, event, arn) => {
   const secret = await getRandomSecret(includeSpaces, secretLength);
   try {
-    const result = await setSecretValue(path, ssmClient, secret);
+    const result = await setSecretValue(path, secret);
     return handleSuccess(event, { version: result.Version, action: "put" }, arn);
   } catch (error) {
     return handleError(event, error instanceof Error ? error : new Error("Set parameter failed"), arn);
   }
 };
 var getRandomSecret = async (includeSpaces, secretLength) => {
-  const client = new import_client_secrets_manager.SecretsManagerClient({});
-  return client.send(new import_client_secrets_manager.GetRandomPasswordCommand({
+  return secretsManager.send(new import_client_secrets_manager.GetRandomPasswordCommand({
     IncludeSpace: includeSpaces,
     PasswordLength: secretLength,
     RequireEachIncludedType: true,
@@ -167,32 +167,32 @@ var getRandomSecret = async (includeSpaces, secretLength) => {
     throw new Error("No password returned");
   });
 };
-var setSecretValue = async (path, client, secret) => {
+var setSecretValue = async (path, secret) => {
   const params = {
     Name: path,
     Value: secret,
     Overwrite: true,
     Type: "SecureString"
   };
-  return client.send(new import_client_ssm.PutParameterCommand(params));
+  return ssmClient.send(new import_client_ssm.PutParameterCommand(params));
 };
-var deleteSecret = async (path, client) => {
+var deleteSecret = async (path) => {
   const params = {
     Name: path
   };
-  return client.send(new import_client_ssm.DeleteParameterCommand(params)).then(() => true).catch((error) => {
+  return ssmClient.send(new import_client_ssm.DeleteParameterCommand(params)).then(() => true).catch((error) => {
     if (error instanceof import_client_ssm.ParameterNotFound) {
       return true;
     }
     throw error;
   });
 };
-var getParameter = async (path, client) => {
+var getParameter = async (path) => {
   const params = {
     Name: path,
     WithDecryption: true
   };
-  return client.send(new import_client_ssm.GetParameterCommand(params)).catch((error) => {
+  return ssmClient.send(new import_client_ssm.GetParameterCommand(params)).catch((error) => {
     if (error instanceof import_client_ssm.ParameterNotFound) {
       return {
         $metadata: {}
