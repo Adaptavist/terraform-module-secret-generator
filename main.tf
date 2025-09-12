@@ -10,19 +10,19 @@ data "aws_region" "current" {}
 
 module "aws-lambda" {
   source  = "Adaptavist/aws-lambda/module"
-  version = "1.11.0"
+  version = "1.35.8"
 
   function_name   = var.lambda_name
   description     = "A lambda which generates a random string and sets it into a supplied SSM path"
   lambda_code_dir = "${path.module}/typescript/dist"
   handler         = "app.handler"
-  runtime         = "nodejs16.x"
+  runtime         = "nodejs22.x"
   timeout         = "300"
 
   namespace  = var.namespace
   stage      = var.stage
   tags       = local.finalTags
-  aws_region = data.aws_region.current.name
+  aws_region = data.aws_region.current.id
 }
 
 resource "aws_iam_role_policy" "lambda_exec_role_policy" {

@@ -1,50 +1,49 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 
-import { Context } from 'aws-lambda';
 import { IncomingMessage } from 'http';
+
+type Status = 'SUCCESS' | 'FAILED';
 
 const SUCCESS = 'SUCCESS';
 const FAILED = 'FAILED';
 
-const send = async (event: any, context: Context, responseStatus: any, responseData: any, error?: any, physicalResourceId?: any, noEcho?: boolean): Promise<void> => {
+const send = async (event: any, responseStatus: Status, responseData: any, physicalResourceId: string, reason?: string): Promise<void> => {
     return new Promise((resolve, reject) => {
         const responseBody = JSON.stringify({
             Status: responseStatus,
-            Reason: `See the details in CloudWatch Log Group ${context.logGroupName} Log Stream ${context.logStreamName}; response ${JSON.stringify(responseData)}`,
-            PhysicalResourceId: physicalResourceId || context.logStreamName,
+            Reason: reason,
+            PhysicalResourceId: physicalResourceId,
             StackId: event.StackId,
             RequestId: event.RequestId,
             LogicalResourceId: event.LogicalResourceId,
-            NoEcho: noEcho || false,
+            NoEcho: false,
             Data: responseData
         });
 
         console.log('Response body:\n', responseBody);
 
         const https = require('https');
-        const url = require('url');
 
-        const parsedUrl = url.parse(event.ResponseURL);
+        const parsedUrl = URL.parse(event.ResponseURL)!;
         const options = {
             hostname: parsedUrl.hostname,
             port: 443,
-            path: parsedUrl.path,
+            path: parsedUrl.pathname + parsedUrl.search,
             method: 'PUT',
             headers: {
-                'content-type': '',
+                'content-type': 'application/json; charset=utf-8',
                 'content-length': responseBody.length
             }
         };
 
         const request = https.request(options, function (response: IncomingMessage) {
-            console.log('Status code: ' + response.statusCode);
-            console.log('Status message: ' + response.statusMessage);
+            console.log(`Status: ${response.statusCode} ${response.statusMessage}`);
             resolve();
         });
 
         request.on('error', function (error: Error) {
-            console.log('send(..) failed executing https.request(..): ' + error);
+            console.error('send(..) failed executing https.request(..): ', error);
             reject(error);
         });
 
