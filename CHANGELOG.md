@@ -1,3 +1,27 @@
+# [2.0.0](https://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.6.0...v2.0.0) (2025-09-12)
+
+
+### Bug Fixes
+
+* properly handle create/update/delete of a single SSM param in a single region ([f7fe737](https://bitbucket.org/adaptavistlabs/module-secret-generator/commits/f7fe737b7d8bf6c47a196c7a284b49410ba5293a))
+* use globally instantiated SDK clients ([34202a7](https://bitbucket.org/adaptavistlabs/module-secret-generator/commits/34202a71c54476912af8db34d02c19ad2225a2f6))
+* use s3 state locking ([1072d00](https://bitbucket.org/adaptavistlabs/module-secret-generator/commits/1072d00c914b8d7164d5ab451c91615007bd7730))
+
+
+### Features
+
+* add integration tests ([c218f73](https://bitbucket.org/adaptavistlabs/module-secret-generator/commits/c218f73ea5c12706d9b17330d42bed7f0e7742ad))
+* improve outputs from custom resource ([3257ae3](https://bitbucket.org/adaptavistlabs/module-secret-generator/commits/3257ae36f6002430a809d5bf2049c070822dc98a))
+* update package-lock.json files ([c6dc0aa](https://bitbucket.org/adaptavistlabs/module-secret-generator/commits/c6dc0aa18c36f6e32d793e73fd064250edbfbc21))
+* upgrade aws-lambda module version ([70a36a1](https://bitbucket.org/adaptavistlabs/module-secret-generator/commits/70a36a1c59876b9a7df89908478746af12d1935e))
+* upgrade to Node 22 ([c80c940](https://bitbucket.org/adaptavistlabs/module-secret-generator/commits/c80c9409dc27510dbbd0819d4d13ebbeeaeec940))
+* upgraded AWS SDK and other dependencies ([8cff561](https://bitbucket.org/adaptavistlabs/module-secret-generator/commits/8cff5616755231a790af16543c898a3e371cc21a))
+
+
+### BREAKING CHANGES
+
+* The PhysicalResourceId value has changed and multi-region support removed.
+
 # [1.6.0](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.5.4...v1.6.0) (2023-11-02)
 
 

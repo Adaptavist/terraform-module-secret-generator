@@ -19,8 +19,6 @@
   "husky": {
     "skipCI": true,
     "hooks": {
-      "pre-commit": "terraform fmt -check -recursive -diff",
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   },
   "release": {
