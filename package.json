@@ -9,7 +9,7 @@
     "@semantic-release/release-notes-generator": "^9.0.1",
     "dot-prop": ">=4.2.1",
     "husky": "^4.2.1",
-    "semantic-release": "^17.4.0"
+    "semantic-release": "^25.0.5"
   },
   "scripts": {
     "check": "terraform fmt -check -recursive -diff",

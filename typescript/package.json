@@ -7,9 +7,9 @@
   "license": "UNLICENSED",
   "main": "app.js",
   "dependencies": {
-    "@aws-sdk/client-secrets-manager": "^3.883.0",
-    "@aws-sdk/client-ssm": "^3.883.0",
-    "@aws-sdk/client-sts": "^3.883.0"
+    "@aws-sdk/client-secrets-manager": "^3.1070.0",
+    "@aws-sdk/client-ssm": "^3.1070.0",
+    "@aws-sdk/client-sts": "^3.1070.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.51",
@@ -33,7 +33,7 @@
     "typescript": "^5.9.2"
   },
   "scripts": {
-    "build": "rm -rf ./dist && esbuild app.ts --bundle --platform=node --outfile=dist/app.js --external:@aws-sdk/*",
+    "build": "rm -rf ./dist && esbuild app.ts --bundle --platform=node --outfile=dist/app.js '--external:@aws-sdk/*'",
     "test": "jest"
   },
   "packageManager": "pnpm@11.5.2+sha512.71c631e382066efc25625d5cf029075de07b61b37f6e27350fbd84b1bda5864c8c1967adc280776b45c30a715c0359a3be08fef42d5bb09e2b99029979692916"
