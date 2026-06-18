@@ -1,0 +1,11 @@
+blockExoticSubdeps: true
+ignoreDepScripts: true
+minimumReleaseAge: 1440
+strictDepBuilds: true
+trustPolicy: no-downgrade
+allowBuilds:
+  esbuild: true
+  unrs-resolver: true
+overrides:
+  "semver@5.7.2": "7.7.3"
+  "semver@6.3.1": "7.7.3"

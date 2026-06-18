@@ -15,7 +15,7 @@
     "@types/aws-lambda": "^8.10.51",
     "@types/cfn-response": "^1.0.8",
     "@types/jest": "^30.0.0",
-    "@types/node": "^22.13.0",
+    "@types/node": "^24",
     "@typescript-eslint/eslint-plugin": "^4.18.0",
     "@typescript-eslint/parser": "^4.18.0",
     "esbuild": "^0.25.9",
@@ -35,5 +35,6 @@
   "scripts": {
     "build": "rm -rf ./dist && esbuild app.ts --bundle --platform=node --outfile=dist/app.js --external:@aws-sdk/*",
     "test": "jest"
-  }
+  },
+  "packageManager": "pnpm@11.5.2+sha512.71c631e382066efc25625d5cf029075de07b61b37f6e27350fbd84b1bda5864c8c1967adc280776b45c30a715c0359a3be08fef42d5bb09e2b99029979692916"
 }

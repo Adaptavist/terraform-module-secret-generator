@@ -1,0 +1,9 @@
+blockExoticSubdeps: true
+ignoreDepScripts: true
+minimumReleaseAge: 1440
+strictDepBuilds: true
+trustPolicy: no-downgrade
+allowBuilds:
+  core-js: false
+  esbuild: true
+  husky: true

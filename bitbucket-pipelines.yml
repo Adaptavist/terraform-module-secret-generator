@@ -13,13 +13,14 @@ definitions:
 
     tests: &test
         name: Node Build
-        image: node:22-slim
+        image: node:24-slim
         oidc: true
         script:
+            - corepack enable pnpm
             - *oidc-dev
             - cd typescript
-            - npm ci && npm run-script build
-            - AWS_REGION="${AWS_DEFAULT_REGION}" npm run test
+            - pnpm install && pnpm run build
+            - AWS_REGION="${AWS_DEFAULT_REGION}" pnpm run test
 
     go-tests: &go-test
         name: Go Tests
@@ -63,12 +64,11 @@ definitions:
 
     transpile: &transpile
         name: Transpile TS
-        image: node:22-slim
-        caches:
-            - node
+        image: node:24-slim
         script:
+            - corepack enable pnpm
             - apt-get update && apt-get install -y git
-            - cd typescript && npm ci && npm run-script build
+            - cd typescript && pnpm install && pnpm run build
             - cd ..
             - git add typescript/dist/*
             - git commit --allow-empty -m '[skip ci] transpiled TS to JS'
@@ -76,12 +76,11 @@ definitions:
 
     release: &release
         name: Release
-        image: node:22-slim
-        caches:
-            - node
+        image: node:24-slim
         script:
-            - npm ci
-            - npx semantic-release -r ${BITBUCKET_GIT_HTTP_ORIGIN}
+            - corepack enable pnpm
+            - pnpm install
+            - pnpm exec semantic-release -r ${BITBUCKET_GIT_HTTP_ORIGIN}
 
 pipelines:
     default:
