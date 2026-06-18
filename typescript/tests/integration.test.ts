@@ -8,7 +8,7 @@ import {
     PutParameterCommand,
     SSMClient
 } from '@aws-sdk/client-ssm';
-import { v4 as uuid } from 'uuid';
+import { randomUUID } from 'node:crypto';
 
 const context: Context = {
     logGroupName: 'testing',
@@ -33,26 +33,27 @@ const context: Context = {
     }
 };
 
-const NEW_PARAM = `/sr/integration/test/secret/${uuid()}`;
-const SHORT_PARAM = `/sr/integration/test/secret/${uuid()}`;
-const OVERWRITE_PARAM = `/sr/integration/test/secret/${uuid()}`;
-const RESPECT_PARAM = `/sr/integration/test/secret/${uuid()}`;
-const MISSING_PARAM = `/sr/integration/test/secret/${uuid()}`;
-const TO_DELETE = `/sr/integration/test/secret/${uuid()}`;
-const ORIGIN_PARAM = `/sr/integration/test/secret/${uuid()}`;
-const TARGET_PARAM = `/sr/integration/test/secret/${uuid()}`;
-const ORIGIN_PARAM_2 = `/sr/integration/test/secret/${uuid()}`;
-const TARGET_PARAM_2 = `/sr/integration/test/secret/${uuid()}`;
-const ORIGIN_PARAM_3 = `/sr/integration/test/secret/${uuid()}`;
-const TARGET_PARAM_3 = `/sr/integration/test/secret/${uuid()}`;
-const ORIGIN_PARAM_4 = `/sr/integration/test/secret/${uuid()}`;
-const TARGET_PARAM_4 = `/sr/integration/test/secret/${uuid()}`;
-const ORIGIN_PARAM_5 = `/sr/integration/test/secret/${uuid()}`;
-const TARGET_PARAM_5 = `/sr/integration/test/secret/${uuid()}`;
-const UPDATE_PARAM = `/sr/integration/test/secret/${uuid()}`;
-const UPDATE_PARAM_2 = `/sr/integration/test/secret/${uuid()}`;
-const UPDATE_PARAM_3 = `/sr/integration/test/secret/${uuid()}`;
-const UPDATE_PARAM_4 = `/sr/integration/test/secret/${uuid()}`;
+const NEW_PARAM = `/sr/integration/test/secret/${randomUUID()}`;
+const SHORT_PARAM = `/sr/integration/test/secret/${randomUUID()}`;
+const OVERWRITE_PARAM = `/sr/integration/test/secret/${randomUUID()}`;
+const RESPECT_PARAM = `/sr/integration/test/secret/${randomUUID()}`;
+const MISSING_PARAM = `/sr/integration/test/secret/${randomUUID()}`;
+const TO_DELETE = `/sr/integration/test/secret/${randomUUID()}`;
+const TO_KEEP = `/sr/integration/test/secret/${randomUUID()}`;
+const ORIGIN_PARAM = `/sr/integration/test/secret/${randomUUID()}`;
+const TARGET_PARAM = `/sr/integration/test/secret/${randomUUID()}`;
+const ORIGIN_PARAM_2 = `/sr/integration/test/secret/${randomUUID()}`;
+const TARGET_PARAM_2 = `/sr/integration/test/secret/${randomUUID()}`;
+const ORIGIN_PARAM_3 = `/sr/integration/test/secret/${randomUUID()}`;
+const TARGET_PARAM_3 = `/sr/integration/test/secret/${randomUUID()}`;
+const ORIGIN_PARAM_4 = `/sr/integration/test/secret/${randomUUID()}`;
+const TARGET_PARAM_4 = `/sr/integration/test/secret/${randomUUID()}`;
+const ORIGIN_PARAM_5 = `/sr/integration/test/secret/${randomUUID()}`;
+const TARGET_PARAM_5 = `/sr/integration/test/secret/${randomUUID()}`;
+const UPDATE_PARAM = `/sr/integration/test/secret/${randomUUID()}`;
+const UPDATE_PARAM_2 = `/sr/integration/test/secret/${randomUUID()}`;
+const UPDATE_PARAM_3 = `/sr/integration/test/secret/${randomUUID()}`;
+const UPDATE_PARAM_4 = `/sr/integration/test/secret/${randomUUID()}`;
 const ssm = new SSMClient({});
 
 const putParam = (path: string, value = 'initial') => {
@@ -559,5 +560,30 @@ describe('Delete resource', () => {
         expect(resp).toBeUndefined();
         expect(scope.isDone()).toBeTruthy();
         expect(removed).toBeTruthy();
+    });
+
+    it('Succeeds if param should be kept during delete', async () => {
+        // given:
+        const event = {
+            RequestType: 'Delete',
+            ResponseURL: 'https://presigned.s3.aws.com/delete-secret',
+            ResourceProperties: {
+                path: TO_KEEP,
+                keepParamOnDelete: 'true'
+            }
+        };
+        await putParam(TO_KEEP);
+        const scope = nock('https://presigned.s3.aws.com')
+            .put('/delete-secret', body => body.Status === 'SUCCESS' && body.PhysicalResourceId.endsWith(TO_KEEP))
+            .reply(200);
+
+        // when:
+        const resp = await handler(event, context);
+
+        // then:
+        expect(resp).toBeUndefined();
+        expect(scope.isDone()).toBeTruthy();
+        const stillThere = await getParam(TO_KEEP);
+        expect(stillThere.Parameter!.Value).toEqual('initial');
     });
 });

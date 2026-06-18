@@ -9,7 +9,7 @@
     "@semantic-release/release-notes-generator": "^9.0.1",
     "dot-prop": ">=4.2.1",
     "husky": "^4.2.1",
-    "semantic-release": "^17.4.0"
+    "semantic-release": "^25.0.5"
   },
   "scripts": {
     "check": "terraform fmt -check -recursive -diff",
@@ -18,8 +18,7 @@
   },
   "husky": {
     "skipCI": true,
-    "hooks": {
-    }
+    "hooks": {}
   },
   "release": {
     "branches": [
@@ -44,7 +43,7 @@
     ]
   },
   "dependencies": {
-    "esbuild": "^0.8.54"
-  }
+    "esbuild": "^0.28.1"
+  },
+  "packageManager": "pnpm@11.7.0+sha512.19cc852c120c7125760f2443ee6be0ca5b40f9f50598de1a09a1f177503e010e57c23c77646e01e761de59bf874fb22a3398c33ab9691fc13eb946b6f0f4d620"
 }
-

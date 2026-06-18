@@ -31,8 +31,9 @@ export const handler = async (
     const respectInitialValue = toBoolean(event.ResourceProperties.respectInitialValue);
     const includeSpaces = toBoolean(event.ResourceProperties.includeSpaces);
     const secretLength = toNumber(event.ResourceProperties.secretLength);
+    const keepParamOnDelete = toBoolean(event.ResourceProperties.keepParamOnDelete);
 
-    console.log(`path: ${path}, respectInitialValue: ${respectInitialValue}, includeSpaces: ${includeSpaces}, secretLength: ${secretLength}`);
+    console.log(`path: ${path}, respectInitialValue: ${respectInitialValue}, includeSpaces: ${includeSpaces}, secretLength: ${secretLength}, keepParamOnDelete: ${keepParamOnDelete}`);
 
     const arn = `arn:aws:ssm:${process.env.AWS_REGION}:${accountId}:parameter${path.startsWith('/') ? path : '/' + path}`;
 
@@ -49,6 +50,10 @@ export const handler = async (
         }
 
         if (event.RequestType === 'Delete') {
+            if (keepParamOnDelete) {
+                return handleSuccess(event, { action: 'none', description: 'keepParamOnDelete is set' }, arn);
+            }
+
             const resp = await getParameter(path);
             if (resp.Parameter === undefined) {
                 // nothing to delete
