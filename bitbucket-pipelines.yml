@@ -17,6 +17,7 @@ definitions:
         oidc: true
         script:
             - corepack enable pnpm
+            - pnpm config set "//nexus.adaptavist.net/repository/npm-group/:_auth" "$NPM_TOKEN"
             - *oidc-dev
             - cd typescript
             - pnpm install && pnpm run build
@@ -67,6 +68,7 @@ definitions:
         image: node:24-slim
         script:
             - corepack enable pnpm
+            - pnpm config set "//nexus.adaptavist.net/repository/npm-group/:_auth" "$NPM_TOKEN"
             - apt-get update && apt-get install -y git
             - cd typescript && pnpm install && pnpm run build
             - cd ..
@@ -79,6 +81,7 @@ definitions:
         image: node:24-slim
         script:
             - corepack enable pnpm
+            - pnpm config set "//nexus.adaptavist.net/repository/npm-group/:_auth" "$NPM_TOKEN"
             - pnpm install
             - pnpm exec semantic-release -r ${BITBUCKET_GIT_HTTP_ORIGIN}
 
