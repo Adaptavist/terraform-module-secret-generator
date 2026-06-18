@@ -1,3 +1,12 @@
+# [2.1.0](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v2.0.0...v2.1.0) (2026-06-18)
+
+
+### Features
+
+* fix for releasing keep SSM param during deletion ([2b0bfcd](http://bitbucket.org/adaptavistlabs/module-secret-generator/commits/2b0bfcdd2b4e0e16731bdb8920471b0a8750bb1b))
+* option to keep SSM params during deletion ([9c9cea6](http://bitbucket.org/adaptavistlabs/module-secret-generator/commits/9c9cea6db7e2868b2d72771449508056bdc17e8f))
+* upgrade function to Node 24 ([057abdb](http://bitbucket.org/adaptavistlabs/module-secret-generator/commits/057abdbd9416a209642e5b446f7c014995897dfd))
+
 # [2.0.0](https://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v1.6.0...v2.0.0) (2025-09-12)
 
 
