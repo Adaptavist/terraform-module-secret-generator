@@ -80,6 +80,7 @@ definitions:
         name: Release
         image: node:24-slim
         script:
+            - apt-get update && apt-get install -y git
             - corepack enable pnpm
             - pnpm config set "//nexus.adaptavist.net/repository/npm-group/:_auth" "$NPM_TOKEN"
             - pnpm install
