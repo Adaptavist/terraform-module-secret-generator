@@ -84,7 +84,8 @@ var handler = async (event, context) => {
   const respectInitialValue = toBoolean(event.ResourceProperties.respectInitialValue);
   const includeSpaces = toBoolean(event.ResourceProperties.includeSpaces);
   const secretLength = toNumber(event.ResourceProperties.secretLength);
-  console.log(`path: ${path}, respectInitialValue: ${respectInitialValue}, includeSpaces: ${includeSpaces}, secretLength: ${secretLength}`);
+  const keepParamOnDelete = toBoolean(event.ResourceProperties.keepParamOnDelete);
+  console.log(`path: ${path}, respectInitialValue: ${respectInitialValue}, includeSpaces: ${includeSpaces}, secretLength: ${secretLength}, keepParamOnDelete: ${keepParamOnDelete}`);
   const arn = `arn:aws:ssm:${process.env.AWS_REGION}:${accountId}:parameter${path.startsWith("/") ? path : "/" + path}`;
   try {
     if (event.RequestType === "Create") {
@@ -97,6 +98,9 @@ var handler = async (event, context) => {
       return createSetNewSecret(includeSpaces, secretLength, path, event, arn);
     }
     if (event.RequestType === "Delete") {
+      if (keepParamOnDelete) {
+        return handleSuccess(event, { action: "none", description: "keepParamOnDelete is set" }, arn);
+      }
       const resp = await getParameter(path);
       if (resp.Parameter === void 0) {
         return handleSuccess(event, { action: "none", description: "Param doesn't exist" }, arn);
