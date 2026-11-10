@@ -20,7 +20,7 @@ definitions:
             - pnpm config set "//nexus.adaptavist.net/repository/npm-group/:_auth" "$NPM_TOKEN"
             - *oidc-dev
             - cd typescript
-            - pnpm install && pnpm run build
+            - pnpm install && pnpm run lint && pnpm run build
             - AWS_REGION="${AWS_DEFAULT_REGION}" pnpm run test
 
     go-tests: &go-test
@@ -70,7 +70,7 @@ definitions:
             - corepack enable pnpm
             - pnpm config set "//nexus.adaptavist.net/repository/npm-group/:_auth" "$NPM_TOKEN"
             - apt-get update && apt-get install -y git
-            - cd typescript && pnpm install && pnpm run build
+            - cd typescript && pnpm install && pnpm run lint && pnpm run build
             - cd ..
             - git add typescript/dist/*
             - git commit --allow-empty -m '[skip ci] transpiled TS to JS'

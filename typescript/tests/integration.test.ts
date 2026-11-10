@@ -19,16 +19,16 @@ const context: Context = {
     invokedFunctionArn: 'arn:aws:lambda:123456789:us-west-2:function/create-secret',
     memoryLimitInMB: '512',
     awsRequestId: 'none',
-    getRemainingTimeInMillis(): number {
+    getRemainingTimeInMillis (): number {
         return 0;
     },
-    done(error?: Error, result?: any): void {
+    done (_error?: Error, result?: any): void {
         // do nothing
     },
-    fail(error: Error | string): void {
+    fail (_error: Error | string): void {
         // do nothing
     },
-    succeed(messageOrObject: any, object?: any): void {
+    succeed (messageOrObject: any, object?: any): void {
         // do nothing
     }
 };
@@ -83,7 +83,6 @@ const exists = (path: string) => {
 };
 
 describe('Create resource', () => {
-
     afterAll(async () => {
         await ssm.send(new DeleteParameterCommand({ Name: NEW_PARAM }));
         await ssm.send(new DeleteParameterCommand({ Name: SHORT_PARAM }));
@@ -185,7 +184,7 @@ describe('Create resource', () => {
             RequestType: 'Create',
             ResponseURL: 'https://presigned.s3.aws.com/create-secret',
             ResourceProperties: {
-                path: OVERWRITE_PARAM,
+                path: OVERWRITE_PARAM
             }
         };
         const created = await putParam(OVERWRITE_PARAM);
@@ -210,7 +209,7 @@ describe('Create resource', () => {
             ResponseURL: 'https://presigned.s3.aws.com/create-secret',
             ResourceProperties: {
                 path: RESPECT_PARAM,
-                respectInitialValue: true,
+                respectInitialValue: true
             }
         };
         const created = await putParam(RESPECT_PARAM);
@@ -230,7 +229,6 @@ describe('Create resource', () => {
 });
 
 describe('Update resource', () => {
-
     afterAll(async () => {
         await ssm.send(new DeleteParameterCommand({ Name: ORIGIN_PARAM }));
         await ssm.send(new DeleteParameterCommand({ Name: TARGET_PARAM }));
@@ -314,7 +312,7 @@ describe('Update resource', () => {
             ResponseURL: 'https://presigned.s3.aws.com/update-secret',
             ResourceProperties: {
                 path: TARGET_PARAM_5,
-                respectInitialValue: true,
+                respectInitialValue: true
             },
             OldResourceProperties: {
                 path: ORIGIN_PARAM_5

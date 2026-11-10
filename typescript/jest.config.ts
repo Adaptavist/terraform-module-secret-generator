@@ -5,7 +5,7 @@ const config: Config = {
     // verbose: true,
     reporters: [
         'default',
-        ['jest-junit', { outputDirectory: 'test-results', outputName: 'jest.xml' }],
+        ['jest-junit', { outputDirectory: 'test-results', outputName: 'jest.xml' }]
     ],
     ...createDefaultPreset()
 };
