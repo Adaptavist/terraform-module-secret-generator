@@ -25,7 +25,7 @@ definitions:
 
     go-tests: &go-test
         name: Go Tests
-        image: hashicorp/terraform
+        image: hashicorp/terraform:1.17.2
         oidc: true
         script:
             - *oidc-dev
@@ -33,14 +33,14 @@ definitions:
 
     check: &check
         name: Check HCL
-        image: hashicorp/terraform
+        image: hashicorp/terraform:1.17.2
         script:
             - (echo ${PIPELINE_GIT_PRIVATE_KEY} | base64 -d >> ~/.ssh/id_rsa) && chmod 0600 ~/.ssh/id_rsa
             - terraform fmt -check -recursive -diff
 
     test-plan: &test-plan
         name: TF Test Plan
-        image: hashicorp/terraform
+        image: hashicorp/terraform:1.17.2
         oidc: true
         script:
             - *oidc-dev
