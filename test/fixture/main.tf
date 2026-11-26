@@ -1,4 +1,6 @@
 terraform {
+  required_version = "~> 1.17.0"
+
   backend "s3" {
     bucket       = "srcloud-module-platform-sandbox-terraform-state-management"
     use_lockfile = true
