@@ -1,3 +1,10 @@
+## [2.1.1](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v2.1.0...v2.1.1) (2026-11-26)
+
+
+### Bug Fixes
+
+* AVSTCLOUD-5002 upgrade Terraform to 1.17.2 ([137bd71](http://bitbucket.org/adaptavistlabs/module-secret-generator/commits/137bd711655bea7e0e40b794c69c95b360c3598c))
+
 # [2.1.0](http://bitbucket.org/adaptavistlabs/module-secret-generator/compare/v2.0.0...v2.1.0) (2026-06-18)
 
 
